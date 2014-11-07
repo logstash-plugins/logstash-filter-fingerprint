@@ -14,15 +14,15 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # will overwrite current value of a field if it exists.
   config :target, :validate => :string, :default => 'fingerprint'
 
-  # When used with IPV4_NETWORK method fill in the subnet prefix length
-  # Not required for MURMUR3 or UUID methods
-  # With other methods fill in the HMAC key
+  # When used with `IPV4_NETWORK` method fill in the subnet prefix length
+  # Not required for `MURMUR3` or `UUID` methods
+  # With other methods fill in the `HMAC` key
   config :key, :validate => :string
 
   # Fingerprint method
   config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
 
-  # When set to true, we concatenate the values of all fields into 1 string like the old checksum filter.
+  # When set to `true`, we concatenate the values of all fields into 1 string like the old checksum filter.
   config :concatenate_sources, :validate => :boolean, :default => false
 
   def register
