@@ -5,7 +5,6 @@ require "logstash/namespace"
 #  Fingerprint fields using by replacing values with a consistent hash.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   config_name "fingerprint"
-  milestone 1
 
   # Source field(s)
   config :source, :validate => :array, :default => 'message'
