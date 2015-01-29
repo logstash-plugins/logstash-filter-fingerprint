@@ -24,6 +24,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # When set to `true`, we concatenate the values of all fields into 1 string like the old checksum filter.
   config :concatenate_sources, :validate => :boolean, :default => false
 
+  #When set to true (the default) the source array will be sorted before the fingerprint method is applied.  When set to false the fields in the source array will remain unsorted (i.e. maintain the order they were input)  before the fingerprint method is applied.
+  config :sorted_sources, :validate => :boolean, :default => true
+  
   def register
     # require any library and set the anonymize function
     case @method
@@ -60,14 +63,16 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       when "UUID"
         event[@target] = SecureRandom.uuid
       when "PUNCTUATION"
-        @source.sort.each do |field|
+        @source.sort! if @sorted_sources
+        @source.each do |field|
           next unless event.include?(field)
           event[@target] = event[field].tr('A-Za-z0-9 \t','')
         end
       else
         if @concatenate_sources
           to_string = ''
-          @source.sort.each do |k|
+          @source.sort! if @sorted_sources
+          @source.each do |k|
             @logger.debug("Adding key to string")
             to_string << "|#{k}|#{event[k]}"
           end
