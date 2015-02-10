@@ -160,6 +160,10 @@ describe LogStash::Filters::Fingerprint do
     sample("field1" =>  "PHP Warning:  json_encode() [<a href='function.json-encode'>function.json-encode</a>]: Invalid UTF-8 sequence in argument in /var/www/htdocs/test.php on line 233") do
       insist { subject["fingerprint"] } == ":_()[<='.-'>.-</>]:-////."
     end
+
+    sample("field1" => "Warning: Ruby(ルビ) is an awesome language.") do
+      insist { subject["fingerprint"] } == ":()."
+    end
   end
 
   context 'Timestamps' do

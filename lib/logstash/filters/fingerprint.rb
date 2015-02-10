@@ -62,7 +62,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       when "PUNCTUATION"
         @source.sort.each do |field|
           next unless event.include?(field)
-          event[@target] = event[field].tr('A-Za-z0-9 \t','')
+          # In order to keep some backwards compatibility we should use the unicode version
+          # of the regexp because the POSIX one ([[:punct:]]) left some unwanted characters unfiltered (Symbols).
+          # gsub(/[^[:punct:]]/,'') should be equivalent to gsub(/[^[\p{P}\p{S}]]/,''), but not 100% in JRuby.
+          event[@target] = event[field].gsub(/[^[\p{P}\p{S}]]/,'')
         end
       else
         if @concatenate_sources
