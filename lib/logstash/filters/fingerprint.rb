@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "logstash/filters/base"
 require "logstash/namespace"
+require "base64"
 
 #  Fingerprint fields using by replacing values with a consistent hash.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
@@ -17,6 +18,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # Not required for `MURMUR3` or `UUID` methods
   # With other methods fill in the `HMAC` key
   config :key, :validate => :string
+
+  # When set to 'true', SHA1', 'SHA256', 'SHA384', 'SHA512' and 'MD5' fingerprint methods will be returned
+  # base64 encoded rather than hex encoded.
+  config :base64encode, :validate => :boolean, :default => false
 
   # Fingerprint method
   config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
@@ -97,7 +102,12 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   def anonymize_openssl(data)
     digest = encryption_algorithm()
     # in JRuby 1.7.11 outputs as ASCII-8BIT
-    OpenSSL::HMAC.hexdigest(digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+    if @base64encode
+      hash  = OpenSSL::HMAC.digest(digest, @key, data.to_s)
+      Base64.strict_encode64(hash).force_encoding(Encoding::UTF_8)
+    else
+      OpenSSL::HMAC.hexdigest(digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+    end
   end
 
   def anonymize_murmur3(value)

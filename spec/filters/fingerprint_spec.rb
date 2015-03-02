@@ -35,7 +35,7 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-   describe "fingerprint string with SHA1 alogrithm" do
+  describe "fingerprint string with SHA1 alogrithm" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -48,6 +48,23 @@ describe LogStash::Filters::Fingerprint do
 
     sample("clientip" => "123.123.123.123") do
       insist { subject["fingerprint"] } == "fdc60acc4773dc5ac569ffb78fcb93c9630797f4"
+    end
+  end
+
+  describe "fingerprint string with SHA1 alogrithm and base64 encoding" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          key => "longencryptionkey"
+          method => 'SHA1'
+          base64encode => true
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject["fingerprint"] } == "/cYKzEdz3FrFaf+3j8uTyWMHl/Q="
     end
   end
 
@@ -67,6 +84,23 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
+  describe "fingerprint string with SHA256 alogrithm and base64 encoding" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          key => "longencryptionkey"
+          method => 'SHA256'
+          base64encode => true
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject["fingerprint"] } == "NFvsPv8kLVO1aJFsJhCz45PYhda5bWQ/OElP10v0qco="
+    end
+  end
+
   describe "fingerprint string with SHA384 alogrithm" do
     config <<-CONFIG
       filter {
@@ -80,6 +114,23 @@ describe LogStash::Filters::Fingerprint do
 
     sample("clientip" => "123.123.123.123") do
       insist { subject["fingerprint"] } == "22d4c0e8c4fbcdc4887d2038fca7650f0e2e0e2457ff41c06eb2a980dded6749561c814fe182aff93e2538d18593947a"
+    end
+  end
+
+  describe "fingerprint string with SHA384 alogrithm and base64 encoding" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          key => "longencryptionkey"
+          method => 'SHA384'
+          base64encode => true
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject["fingerprint"] } == "ItTA6MT7zcSIfSA4/KdlDw4uDiRX/0HAbrKpgN3tZ0lWHIFP4YKv+T4lONGFk5R6"
     end
   end
 
@@ -99,6 +150,23 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
+  describe "fingerprint string with SHA512 alogrithm and base64 encoding" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          key => "longencryptionkey"
+          method => 'SHA512'
+          base64encode => true
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject["fingerprint"] } == "EcGbMmk2wI1sUKPIR9iD5aE2Lmpk3VUgGiXywawbZz99i/FbjxEqSXgnbVcydeOxQWbhckb2cMKlOUAcW/2s6A=="
+    end
+  end
+
   describe "fingerprint string with MD5 alogrithm" do
     config <<-CONFIG
       filter {
@@ -112,6 +180,23 @@ describe LogStash::Filters::Fingerprint do
 
     sample("clientip" => "123.123.123.123") do
       insist { subject["fingerprint"] } == "9336c879e305c9604a3843fc3e75948f"
+    end
+  end
+
+  describe "fingerprint string with MD5 alogrithm and base64 encoding" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          key => "longencryptionkey"
+          method => 'MD5'
+          base64encode => true
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject["fingerprint"] } == "kzbIeeMFyWBKOEP8PnWUjw=="
     end
   end
 
