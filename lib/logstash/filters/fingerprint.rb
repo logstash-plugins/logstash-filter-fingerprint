@@ -60,7 +60,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   public
   def filter(event)
-    return unless filter?(event)
+    
     case @method
       when "UUID"
         event[@target] = SecureRandom.uuid
