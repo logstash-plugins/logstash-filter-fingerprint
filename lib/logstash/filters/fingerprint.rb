@@ -2,6 +2,10 @@
 require "logstash/filters/base"
 require "logstash/namespace"
 require "base64"
+require "openssl"
+require 'ipaddr'
+require "murmurhash3"
+require "securerandom"
 
 #  Fingerprint fields using by replacing values with a consistent hash.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
@@ -32,71 +36,72 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   def register
     # require any library and set the anonymize function
     case @method
-      when "IPV4_NETWORK"
-        if @key.nil?
-          raise LogStash::ConfigurationError, I18n.t("logstash.agent.configuration.invalid_plugin_register", 
-          :plugin => "filter", :type => "fingerprint",
-          :error => "Key value is empty. please fill in a subnet prefix length")
-        end
-        require 'ipaddr'
-        class << self; alias_method :anonymize, :anonymize_ipv4_network; end
-      when "MURMUR3"
-        require "murmurhash3"
-        class << self; alias_method :anonymize, :anonymize_murmur3; end
-      when "UUID"
-        require "securerandom"
-      when "PUNCTUATION"
-        # nothing required
-      else
-        if @key.nil?
-          raise LogStash::ConfigurationError, I18n.t("logstash.agent.configuration.invalid_plugin_register", 
-          :plugin => "filter", :type => "fingerprint",
-          :error => "Key value is empty. Please fill in an encryption key")
-        end
-        require 'openssl'
-        class << self; alias_method :anonymize, :anonymize_openssl; end
+    when "IPV4_NETWORK"
+      if @key.nil?
+        raise LogStash::ConfigurationError, I18n.t(
+          "logstash.agent.configuration.invalid_plugin_register",
+          :plugin => "filter",
+          :type => "fingerprint",
+          :error => "Key value is empty. please fill in a subnet prefix length"
+        )
+      end
+      class << self; alias_method :anonymize, :anonymize_ipv4_network; end
+    when "MURMUR3"
+      class << self; alias_method :anonymize, :anonymize_murmur3; end
+    when "UUID"
+      # nothing
+    when "PUNCTUATION"
+      # nothing
+    else
+      if @key.nil?
+        raise LogStash::ConfigurationError, I18n.t(
+          "logstash.agent.configuration.invalid_plugin_register",
+          :plugin => "filter",
+          :type => "fingerprint",
+          :error => "Key value is empty. Please fill in an encryption key"
+        )
+      end
+      class << self; alias_method :anonymize, :anonymize_openssl; end
     end
-  end # def register
+  end
 
-  public
   def filter(event)
-    
     case @method
-      when "UUID"
-        event[@target] = SecureRandom.uuid
-      when "PUNCTUATION"
-        @source.sort.each do |field|
-          next unless event.include?(field)
-          # In order to keep some backwards compatibility we should use the unicode version
-          # of the regexp because the POSIX one ([[:punct:]]) left some unwanted characters unfiltered (Symbols).
-          # gsub(/[^[:punct:]]/,'') should be equivalent to gsub(/[^[\p{P}\p{S}]]/,''), but not 100% in JRuby.
-          event[@target] = event[field].gsub(/[^[\p{P}\p{S}]]/,'')
+    when "UUID"
+      event[@target] = SecureRandom.uuid
+    when "PUNCTUATION"
+      @source.sort.each do |field|
+        next unless event.include?(field)
+        # In order to keep some backwards compatibility we should use the unicode version
+        # of the regexp because the POSIX one ([[:punct:]]) left some unwanted characters unfiltered (Symbols).
+        # gsub(/[^[:punct:]]/,'') should be equivalent to gsub(/[^[\p{P}\p{S}]]/,''), but not 100% in JRuby.
+        event[@target] = event[field].gsub(/[^[\p{P}\p{S}]]/,'')
+      end
+    else
+      if @concatenate_sources
+        to_string = ""
+        @source.sort.each do |k|
+          @logger.debug? && @logger.debug("Adding key to string")
+          to_string << "|#{k}|#{event[k]}"
         end
+        to_string << "|"
+        @logger.debug? && @logger.debug("String built", :to_checksum => to_string)
+        event[@target] = anonymize(to_string)
       else
-        if @concatenate_sources
-          to_string = ''
-          @source.sort.each do |k|
-            @logger.debug("Adding key to string")
-            to_string << "|#{k}|#{event[k]}"
+        @source.each do |field|
+          next unless event.include?(field)
+          if event[field].is_a?(Array)
+            event[@target] = event[field].collect { |v| anonymize(v) }
+          else
+            event[@target] = anonymize(event[field])
           end
-          to_string << "|"
-          @logger.debug("String built", :to_checksum => to_string)
-          event[@target] = anonymize(to_string)
-        else
-          @source.each do |field|
-            next unless event.include?(field)
-            if event[field].is_a?(Array)
-              event[@target] = event[field].collect { |v| anonymize(v) }
-            else
-              event[@target] = anonymize(event[field])
-            end
-          end # @source.each
-        end # concatenate_sources
-
-    end # casse @method
-  end # def filter
+        end
+      end
+    end
+  end
 
   private
+
   def anonymize_ipv4_network(ip_string)
     # in JRuby 1.7.11 outputs as US-ASCII
     IPAddr.new(ip_string).mask(@key.to_i).to_s.force_encoding(Encoding::UTF_8)
@@ -115,28 +120,29 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   def anonymize_murmur3(value)
     case value
-      when Fixnum
-        MurmurHash3::V32.int_hash(value)
-      else
-        MurmurHash3::V32.str_hash(value.to_s)
+    when Fixnum
+      MurmurHash3::V32.int_hash(value)
+    else
+      MurmurHash3::V32.str_hash(value.to_s)
     end
   end
 
   def encryption_algorithm
-   case @method
-     when 'SHA1'
-       return OpenSSL::Digest::SHA1.new
-     when 'SHA256'
-       return OpenSSL::Digest::SHA256.new
-     when 'SHA384'
-       return OpenSSL::Digest::SHA384.new
-     when 'SHA512'
-       return OpenSSL::Digest::SHA512.new
-     when 'MD5'
-       return OpenSSL::Digest::MD5.new
-     else
-       @logger.error("Unknown algorithm")
+    case @method
+    when 'SHA1'
+      return OpenSSL::Digest::SHA1.new
+    when 'SHA256'
+      return OpenSSL::Digest::SHA256.new
+    when 'SHA384'
+      return OpenSSL::Digest::SHA384.new
+    when 'SHA512'
+      return OpenSSL::Digest::SHA512.new
+    when 'MD5'
+      return OpenSSL::Digest::MD5.new
+    else
+      # we should never get here unless new @method are added and the register method does
+      # not properly initialized for this new @method
+      raise LogStash::ConfigurationError, "Unknown hashing algorithm method=#{@method}"
     end
   end
-
-end # class LogStash::Filters::Anonymize
+end
