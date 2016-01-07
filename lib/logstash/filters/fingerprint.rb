@@ -3,7 +3,7 @@ require "logstash/filters/base"
 require "logstash/namespace"
 require "base64"
 require "openssl"
-require 'ipaddr'
+require "ipaddr"
 require "murmurhash3"
 require "securerandom"
 
@@ -34,9 +34,12 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   config :concatenate_sources, :validate => :boolean, :default => false
 
   def register
+    # convert to symbol for faster comparisons
+    @method = @method.to_sym
+
     # require any library and set the anonymize function
     case @method
-    when "IPV4_NETWORK"
+    when :IPV4_NETWORK
       if @key.nil?
         raise LogStash::ConfigurationError, I18n.t(
           "logstash.agent.configuration.invalid_plugin_register",
@@ -46,11 +49,11 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         )
       end
       class << self; alias_method :anonymize, :anonymize_ipv4_network; end
-    when "MURMUR3"
+    when :MURMUR3
       class << self; alias_method :anonymize, :anonymize_murmur3; end
-    when "UUID"
+    when :UUID
       # nothing
-    when "PUNCTUATION"
+    when :PUNCTUATION
       # nothing
     else
       if @key.nil?
@@ -62,14 +65,15 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         )
       end
       class << self; alias_method :anonymize, :anonymize_openssl; end
+      @digest = select_digest(@method)
     end
   end
 
   def filter(event)
     case @method
-    when "UUID"
+    when :UUID
       event[@target] = SecureRandom.uuid
-    when "PUNCTUATION"
+    when :PUNCTUATION
       @source.sort.each do |field|
         next unless event.include?(field)
         # In order to keep some backwards compatibility we should use the unicode version
@@ -81,7 +85,6 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       if @concatenate_sources
         to_string = ""
         @source.sort.each do |k|
-          @logger.debug? && @logger.debug("Adding key to string")
           to_string << "|#{k}|#{event[k]}"
         end
         to_string << "|"
@@ -108,13 +111,12 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   end
 
   def anonymize_openssl(data)
-    digest = encryption_algorithm()
     # in JRuby 1.7.11 outputs as ASCII-8BIT
     if @base64encode
-      hash  = OpenSSL::HMAC.digest(digest, @key, data.to_s)
+      hash  = OpenSSL::HMAC.digest(@digest, @key, data.to_s)
       Base64.strict_encode64(hash).force_encoding(Encoding::UTF_8)
     else
-      OpenSSL::HMAC.hexdigest(digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+      OpenSSL::HMAC.hexdigest(@digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
     end
   end
 
@@ -127,22 +129,21 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     end
   end
 
-  def encryption_algorithm
-    case @method
-    when 'SHA1'
-      return OpenSSL::Digest::SHA1.new
-    when 'SHA256'
-      return OpenSSL::Digest::SHA256.new
-    when 'SHA384'
-      return OpenSSL::Digest::SHA384.new
-    when 'SHA512'
-      return OpenSSL::Digest::SHA512.new
-    when 'MD5'
-      return OpenSSL::Digest::MD5.new
+  def select_digest(method)
+    case method
+    when :SHA1
+      OpenSSL::Digest::SHA1.new
+    when :SHA256
+      OpenSSL::Digest::SHA256.new
+    when :SHA384
+      OpenSSL::Digest::SHA384.new
+    when :SHA512
+      OpenSSL::Digest::SHA512.new
+    when :MD5
+      OpenSSL::Digest::MD5.new
     else
-      # we should never get here unless new @method are added and the register method does
-      # not properly initialized for this new @method
-      raise LogStash::ConfigurationError, "Unknown hashing algorithm method=#{@method}"
+      # we really should never get here
+      raise(LogStash::ConfigurationError, "Unknown digest for method=#{method.to_s}")
     end
   end
 end
