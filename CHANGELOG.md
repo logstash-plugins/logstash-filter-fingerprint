@@ -1,3 +1,5 @@
+# 2.0.4
+  - New dependency requirements for logstash-core for the 5.0 release
 ## 2.0.3
  - Eager loading of libraries, optimizations and cleanups https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/10
 
