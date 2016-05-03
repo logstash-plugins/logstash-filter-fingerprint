@@ -16,7 +16,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "233.255.13.44") do
-      insist { subject["fingerprint"] } == "233.255.13.0"
+      insist { subject.get("fingerprint") } == "233.255.13.0"
     end
   end
 
@@ -31,7 +31,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.52.122.33") do
-      insist { subject["fingerprint"] } == 1541804874
+      insist { subject.get("fingerprint") } == 1541804874
     end
   end
 
@@ -47,7 +47,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "fdc60acc4773dc5ac569ffb78fcb93c9630797f4"
+      insist { subject.get("fingerprint") } == "fdc60acc4773dc5ac569ffb78fcb93c9630797f4"
     end
   end
 
@@ -64,7 +64,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "/cYKzEdz3FrFaf+3j8uTyWMHl/Q="
+      insist { subject.get("fingerprint") } == "/cYKzEdz3FrFaf+3j8uTyWMHl/Q="
     end
   end
 
@@ -80,7 +80,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "345bec3eff242d53b568916c2610b3e393d885d6b96d643f38494fd74bf4a9ca"
+      insist { subject.get("fingerprint") } == "345bec3eff242d53b568916c2610b3e393d885d6b96d643f38494fd74bf4a9ca"
     end
   end
 
@@ -97,7 +97,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "NFvsPv8kLVO1aJFsJhCz45PYhda5bWQ/OElP10v0qco="
+      insist { subject.get("fingerprint") } == "NFvsPv8kLVO1aJFsJhCz45PYhda5bWQ/OElP10v0qco="
     end
   end
 
@@ -113,7 +113,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "22d4c0e8c4fbcdc4887d2038fca7650f0e2e0e2457ff41c06eb2a980dded6749561c814fe182aff93e2538d18593947a"
+      insist { subject.get("fingerprint") } == "22d4c0e8c4fbcdc4887d2038fca7650f0e2e0e2457ff41c06eb2a980dded6749561c814fe182aff93e2538d18593947a"
     end
   end
 
@@ -130,7 +130,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "ItTA6MT7zcSIfSA4/KdlDw4uDiRX/0HAbrKpgN3tZ0lWHIFP4YKv+T4lONGFk5R6"
+      insist { subject.get("fingerprint") } == "ItTA6MT7zcSIfSA4/KdlDw4uDiRX/0HAbrKpgN3tZ0lWHIFP4YKv+T4lONGFk5R6"
     end
   end
 
@@ -146,7 +146,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "11c19b326936c08d6c50a3c847d883e5a1362e6a64dd55201a25f2c1ac1b673f7d8bf15b8f112a4978276d573275e3b14166e17246f670c2a539401c5bfdace8"
+      insist { subject.get("fingerprint") } == "11c19b326936c08d6c50a3c847d883e5a1362e6a64dd55201a25f2c1ac1b673f7d8bf15b8f112a4978276d573275e3b14166e17246f670c2a539401c5bfdace8"
     end
   end
 
@@ -163,7 +163,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "EcGbMmk2wI1sUKPIR9iD5aE2Lmpk3VUgGiXywawbZz99i/FbjxEqSXgnbVcydeOxQWbhckb2cMKlOUAcW/2s6A=="
+      insist { subject.get("fingerprint") } == "EcGbMmk2wI1sUKPIR9iD5aE2Lmpk3VUgGiXywawbZz99i/FbjxEqSXgnbVcydeOxQWbhckb2cMKlOUAcW/2s6A=="
     end
   end
 
@@ -179,7 +179,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "9336c879e305c9604a3843fc3e75948f"
+      insist { subject.get("fingerprint") } == "9336c879e305c9604a3843fc3e75948f"
     end
   end
 
@@ -196,7 +196,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => "123.123.123.123") do
-      insist { subject["fingerprint"] } == "kzbIeeMFyWBKOEP8PnWUjw=="
+      insist { subject.get("fingerprint") } == "kzbIeeMFyWBKOEP8PnWUjw=="
     end
   end
 
@@ -212,7 +212,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("clientip" => [ "123.123.123.123", "223.223.223.223" ]) do
-      insist { subject["fingerprint"]} == [ "9336c879e305c9604a3843fc3e75948f", "7a6c66b8d3f42a7d650e3354af508df3" ]
+      insist { subject.get("fingerprint")} == [ "9336c879e305c9604a3843fc3e75948f", "7a6c66b8d3f42a7d650e3354af508df3" ]
     end
   end
 
@@ -228,7 +228,7 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("field1" => "test1", "field2" => "test2") do
-      insist { subject["fingerprint"]} == "872da745e45192c2a1d4bf7c1ff8a370"
+      insist { subject.get("fingerprint")} == "872da745e45192c2a1d4bf7c1ff8a370"
     end
   end
 
@@ -243,11 +243,11 @@ describe LogStash::Filters::Fingerprint do
     CONFIG
 
     sample("field1" =>  "PHP Warning:  json_encode() [<a href='function.json-encode'>function.json-encode</a>]: Invalid UTF-8 sequence in argument in /var/www/htdocs/test.php on line 233") do
-      insist { subject["fingerprint"] } == ":_()[<='.-'>.-</>]:-////."
+      insist { subject.get("fingerprint") } == ":_()[<='.-'>.-</>]:-////."
     end
 
     sample("field1" => "Warning: Ruby(ルビ) is an awesome language.") do
-      insist { subject["fingerprint"] } == ":()."
+      insist { subject.get("fingerprint") } == ":()."
     end
   end
 
@@ -266,7 +266,7 @@ describe LogStash::Filters::Fingerprint do
       CONFIG
 
       sample("@timestamp" => epoch_time) do
-        insist { subject["fingerprint"] } == '1d5379ec92d86a67cfc642d55aa050ca312d3b9a'
+        insist { subject.get("fingerprint") } == '1d5379ec92d86a67cfc642d55aa050ca312d3b9a'
       end
     end
 
@@ -281,7 +281,7 @@ describe LogStash::Filters::Fingerprint do
       CONFIG
 
       sample("@timestamp" => epoch_time) do
-        insist { subject["fingerprint"] } == 743372282
+        insist { subject.get("fingerprint") } == 743372282
       end
     end
   end

@@ -72,31 +72,31 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   def filter(event)
     case @method
     when :UUID
-      event[@target] = SecureRandom.uuid
+      event.set(@target, SecureRandom.uuid)
     when :PUNCTUATION
       @source.sort.each do |field|
         next unless event.include?(field)
         # In order to keep some backwards compatibility we should use the unicode version
         # of the regexp because the POSIX one ([[:punct:]]) left some unwanted characters unfiltered (Symbols).
         # gsub(/[^[:punct:]]/,'') should be equivalent to gsub(/[^[\p{P}\p{S}]]/,''), but not 100% in JRuby.
-        event[@target] = event[field].gsub(/[^[\p{P}\p{S}]]/,'')
+        event.set(@target, event.get(field).gsub(/[^[\p{P}\p{S}]]/,''))
       end
     else
       if @concatenate_sources
         to_string = ""
         @source.sort.each do |k|
-          to_string << "|#{k}|#{event[k]}"
+          to_string << "|#{k}|#{event.get(k)}"
         end
         to_string << "|"
         @logger.debug? && @logger.debug("String built", :to_checksum => to_string)
-        event[@target] = anonymize(to_string)
+        event.set(@target, anonymize(to_string))
       else
         @source.each do |field|
           next unless event.include?(field)
-          if event[field].is_a?(Array)
-            event[@target] = event[field].collect { |v| anonymize(v) }
+          if event.get(field).is_a?(Array)
+            event.set(@target, event.get(field).collect { |v| anonymize(v) })
           else
-            event[@target] = anonymize(event[field])
+            event.set(@target, anonymize(event.get(field)))
           end
         end
       end
