@@ -123,7 +123,12 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   def anonymize_murmur3(value)
     case value
     when Fixnum
-      MurmurHash3::V32.int_hash(value)
+      if x64?
+        MurmurHash3::V32.int32_hash(value)
+      else
+        MurmurHash3::V32.int64_hash(value)
+      end
+      
     else
       MurmurHash3::V32.str_hash(value.to_s)
     end
@@ -145,5 +150,17 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       # we really should never get here
       raise(LogStash::ConfigurationError, "Unknown digest for method=#{method.to_s}")
     end
+  end
+  
+  def x64?
+    @x64 ||= begin
+      if 1.size == 8
+        true
+      else
+        false
+      end
+    end if !defined?(@x64)
+    
+    @x64
   end
 end
