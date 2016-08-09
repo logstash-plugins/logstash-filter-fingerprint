@@ -7,30 +7,64 @@ require "ipaddr"
 require "murmurhash3"
 require "securerandom"
 
-#  Fingerprint fields using by replacing values with a consistent hash.
+# Create consistent hashes (fingerprints) of one or more fields and store
+# the result in a new field.
+#
+# This can e.g. be used to create consistent document ids when inserting
+# events into Elasticsearch, allowing events in Logstash to cause existing
+# documents to be updated rather than new documents to be created.
+#
+# NOTE: When the `target` option is set to `UUID` the result won't be
+# a consistent hash but a random
+# https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID].
+# To generate UUIDs, prefer the <<plugins-filters-uuid,uuid filter>>.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   config_name "fingerprint"
 
-  # Source field(s)
+  # The name(s) of the source field(s) whose contents will be used
+  # to create the fingerprint. If an array is given, see the
+  # `concatenate_sources` option.
   config :source, :validate => :array, :default => 'message'
 
-  # Target field.
-  # will overwrite current value of a field if it exists.
+  # The name of the field where the generated fingerprint will be stored.
+  # Any current contents of that field will be overwritten.
   config :target, :validate => :string, :default => 'fingerprint'
 
-  # When used with `IPV4_NETWORK` method fill in the subnet prefix length
-  # Not required for `MURMUR3` or `UUID` methods
-  # With other methods fill in the `HMAC` key
+  # When used with the `IPV4_NETWORK` method fill in the subnet prefix length.
+  # Not required for `MURMUR3` or `UUID` methods.
+  # With other methods fill in the HMAC key.
   config :key, :validate => :string
 
-  # When set to 'true', SHA1', 'SHA256', 'SHA384', 'SHA512' and 'MD5' fingerprint methods will be returned
-  # base64 encoded rather than hex encoded.
+  # When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512` and `MD5` fingerprint methods will produce
+  # base64 encoded rather than hex encoded strings.
   config :base64encode, :validate => :boolean, :default => false
 
-  # Fingerprint method
+  # The fingerprint method to use.
+  #
+  # If set to `SHA1`, `SHA256`, `SHA384`, `SHA512`, or `MD5` the
+  # cryptographic keyed-hash function with the same name will be used to
+  # generate the fingerprint. If set to `MURMUR3` the non-cryptographic
+  # MurmurHash function will be used.
+  #
+  # If set to `IPV4_NETWORK` the input data needs to be a IPv4 address and
+  # the hash value will be the masked-out address using the number of bits
+  # specified in the `key` option. For example, with "1.2.3.4" as the input
+  # and `key` set to 16, the hash becomes "1.2.0.0".
+  #
+  # If set to `PUNCTUATION`, all non-punctuation characters will be removed
+  # from the input string.
+  #
+  # If set to `UUID`, a
+  # https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID] will
+  # be generated. The result will be random and thus not a consistent hash.
   config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
 
-  # When set to `true`, we concatenate the values of all fields into 1 string like the old checksum filter.
+  # When set to `true` and `method` isn't `UUID` or `PUNCTUATION`, the
+  # plugin concatenates the names and values of all fields given in the
+  # `source` option into one string (like the old checksum filter) before
+  # doing the fingerprint computation. If `false` and multiple source
+  # fields are given, the target field will be an array with fingerprints
+  # of the source fields given.
   config :concatenate_sources, :validate => :boolean, :default => false
 
   def register
