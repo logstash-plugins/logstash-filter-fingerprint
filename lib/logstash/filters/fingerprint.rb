@@ -135,6 +135,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         end
       end
     end
+    filter_matched(event)
   end
 
   private

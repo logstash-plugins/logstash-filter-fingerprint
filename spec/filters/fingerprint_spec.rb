@@ -286,4 +286,22 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
+  describe "execution triggers addition of fields and tags" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => 'field1'
+          method => 'PUNCTUATION'
+          add_field => { 'myfield' => 'myvalue' }
+          add_tag => ['mytag']
+        }
+      }
+    CONFIG
+
+    sample("field1" => "Hello, World!") do
+      insist { subject.get("myfield") } == "myvalue"
+      insist { subject.get("tags") } == ["mytag"]
+    end
+  end
+
 end
