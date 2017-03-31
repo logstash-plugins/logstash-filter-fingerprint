@@ -14,6 +14,9 @@ require "securerandom"
 # events into Elasticsearch, allowing events in Logstash to cause existing
 # documents to be updated rather than new documents to be created.
 #
+# NOTE: When using any method other than 'UUID', 'PUNCTUATION' or 'MURMUR3'
+# you must set the key, otherwise the plugin will raise an exception
+#
 # NOTE: When the `target` option is set to `UUID` the result won't be
 # a consistent hash but a random
 # https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID].
@@ -31,7 +34,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   config :target, :validate => :string, :default => 'fingerprint'
 
   # When used with the `IPV4_NETWORK` method fill in the subnet prefix length.
-  # Not required for `MURMUR3` or `UUID` methods.
+  # Not required for `MURMUR3`, `PUNCTUATION` or `UUID` methods.
   # With other methods fill in the HMAC key.
   config :key, :validate => :string
 
@@ -76,7 +79,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     when :IPV4_NETWORK
       if @key.nil?
         raise LogStash::ConfigurationError, I18n.t(
-          "logstash.agent.configuration.invalid_plugin_register",
+          "logstash.runner.configuration.invalid_plugin_register",
           :plugin => "filter",
           :type => "fingerprint",
           :error => "Key value is empty. please fill in a subnet prefix length"
@@ -92,7 +95,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     else
       if @key.nil?
         raise LogStash::ConfigurationError, I18n.t(
-          "logstash.agent.configuration.invalid_plugin_register",
+          "logstash.runner.configuration.invalid_plugin_register",
           :plugin => "filter",
           :type => "fingerprint",
           :error => "Key value is empty. Please fill in an encryption key"
