@@ -1,3 +1,6 @@
+## 3.0.3
+  - improve documentation and register exception messaging
+
 ## 3.0.2
   - Relax constraint on logstash-core-plugin-api to >= 1.60 <= 2.99
 
