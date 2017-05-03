@@ -33,8 +33,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # Any current contents of that field will be overwritten.
   config :target, :validate => :string, :default => 'fingerprint'
 
+  # Key is required with all methods except  `MURMUR3`, `PUNCTUATION` or `UUID`.
   # When used with the `IPV4_NETWORK` method fill in the subnet prefix length.
-  # Not required for `MURMUR3`, `PUNCTUATION` or `UUID` methods.
   # With other methods fill in the HMAC key.
   config :key, :validate => :string
 
