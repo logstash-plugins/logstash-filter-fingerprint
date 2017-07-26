@@ -165,8 +165,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       hash  = OpenSSL::HMAC.digest(@digest, @key, data.to_s)
       Base64.strict_encode64(hash).force_encoding(Encoding::UTF_8)
     else
-      hash = OpenSSL::HMAC.hexdigest(@digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
-      return hash
+      OpenSSL::HMAC.hexdigest(@digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
     end
   end
 
