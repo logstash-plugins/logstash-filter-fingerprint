@@ -70,6 +70,11 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # of the source fields given.
   config :concatenate_sources, :validate => :boolean, :default => false
 
+  # When set to `true` and `method` isn't `UUID` or `PUNCTUATION`, the 
+  # plugin concatenates the names and values of all fields in the event 
+  # without having to proide the field names in the `source` attribute
+  config :concatenate_all_fields, :validate => :boolean, :default => false
+
   def register
     # convert to symbol for faster comparisons
     @method = @method.to_sym
@@ -119,10 +124,16 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         event.set(@target, event.get(field).gsub(/[^[\p{P}\p{S}]]/,''))
       end
     else
-      if @concatenate_sources
+      if @concatenate_sources || @concatenate_all_fields
         to_string = ""
-        @source.sort.each do |k|
-          to_string << "|#{k}|#{event.get(k)}"
+        if @concatenate_all_fields
+          event.to_hash.sort.map do |k,v|
+            to_string << "|#{k}|#{v}"
+          end
+        else
+          @source.sort.each do |k|
+            to_string << "|#{k}|#{event.get(k)}"
+          end
         end
         to_string << "|"
         @logger.debug? && @logger.debug("String built", :to_checksum => to_string)
@@ -154,7 +165,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       hash  = OpenSSL::HMAC.digest(@digest, @key, data.to_s)
       Base64.strict_encode64(hash).force_encoding(Encoding::UTF_8)
     else
-      OpenSSL::HMAC.hexdigest(@digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+      hash = OpenSSL::HMAC.hexdigest(@digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+      return hash
     end
   end
 

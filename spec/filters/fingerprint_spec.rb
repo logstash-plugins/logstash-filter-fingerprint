@@ -51,6 +51,23 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
+  describe "fingerprint string with SHA1 alogrithm on all event fields" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          concatenate_all_fields => true
+          key => "longencryptionkey"
+          method => 'SHA1'
+        }
+      }
+    CONFIG
+
+    # The @timestamp field is specified in this sample event as we need the event contents to be constant for the tests
+    sample("@timestamp" => "2017-07-26T14:44:27.064Z", "clientip" => "123.123.123.123", "message" => "This is a test message", "log_level" => "INFO", "offset" => 123456789, "type" => "test") do
+      insist { subject.get("fingerprint") } == "d7c617f4d40b2cb677a7003af68a41c415f58031"
+    end
+  end
+
   describe "fingerprint string with SHA1 alogrithm and base64 encoding" do
     config <<-CONFIG
       filter {
