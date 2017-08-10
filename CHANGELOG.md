@@ -1,3 +1,9 @@
+## 3.1.0
+  - Add new setting `concatenate_all_fields`
+
+## 3.0.4
+  - Documentation improvements
+
 ## 3.0.3
   - improve documentation and register exception messaging
 
