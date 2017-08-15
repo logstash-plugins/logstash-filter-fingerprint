@@ -1,3 +1,6 @@
+## 3.1.1
+  - Fix some documentation issues
+
 ## 3.1.0
   - Add new setting `concatenate_all_fields`
 
