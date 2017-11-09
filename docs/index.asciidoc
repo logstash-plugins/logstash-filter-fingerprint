@@ -80,7 +80,7 @@ fields are given, the target field will be an array with fingerprints
 of the source fields given.
 
 [id="plugins-{type}s-{plugin}-concatenate_all_fields"]
-===== `concatenate_sources` 
+===== `concatenate_all_fields` 
 
   * Value type is <<boolean,boolean>>
   * Default value is `false`
