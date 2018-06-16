@@ -79,7 +79,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     # convert to symbol for faster comparisons
     @method = @method.to_sym
 
-    # require any library and set the anonymize function
+    # require any library and set the fingerprint function
     case @method
     when :IPV4_NETWORK
       if @key.nil?
@@ -90,9 +90,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
           :error => "Key value is empty. please fill in a subnet prefix length"
         )
       end
-      class << self; alias_method :anonymize, :anonymize_ipv4_network; end
+      class << self; alias_method :fingerprint, :fingerprint_ipv4_network; end
     when :MURMUR3
-      class << self; alias_method :anonymize, :anonymize_murmur3; end
+      class << self; alias_method :fingerprint, :fingerprint_murmur3; end
     when :UUID
       # nothing
     when :PUNCTUATION
@@ -106,7 +106,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
           :error => "Key value is empty. Please fill in an encryption key"
         )
       end
-      class << self; alias_method :anonymize, :anonymize_openssl; end
+      class << self; alias_method :fingerprint, :fingerprint_openssl; end
       @digest = select_digest(@method)
     end
   end
@@ -137,14 +137,14 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         end
         to_string << "|"
         @logger.debug? && @logger.debug("String built", :to_checksum => to_string)
-        event.set(@target, anonymize(to_string))
+        event.set(@target, fingerprint(to_string))
       else
         @source.each do |field|
           next unless event.include?(field)
           if event.get(field).is_a?(Array)
-            event.set(@target, event.get(field).collect { |v| anonymize(v) })
+            event.set(@target, event.get(field).collect { |v| fingerprint(v) })
           else
-            event.set(@target, anonymize(event.get(field)))
+            event.set(@target, fingerprint(event.get(field)))
           end
         end
       end
@@ -154,12 +154,12 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   private
 
-  def anonymize_ipv4_network(ip_string)
+  def fingerprint_ipv4_network(ip_string)
     # in JRuby 1.7.11 outputs as US-ASCII
     IPAddr.new(ip_string).mask(@key.to_i).to_s.force_encoding(Encoding::UTF_8)
   end
 
-  def anonymize_openssl(data)
+  def fingerprint_openssl(data)
     # in JRuby 1.7.11 outputs as ASCII-8BIT
     if @base64encode
       hash  = OpenSSL::HMAC.digest(@digest, @key, data.to_s)
@@ -169,7 +169,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     end
   end
 
-  def anonymize_murmur3(value)
+  def fingerprint_murmur3(value)
     case value
     when Fixnum
       MurmurHash3::V32.int_hash(value)
