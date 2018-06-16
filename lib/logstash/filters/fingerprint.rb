@@ -34,8 +34,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   config :target, :validate => :string, :default => 'fingerprint'
 
   # When used with the `IPV4_NETWORK` method fill in the subnet prefix length.
-  # Key is required with all methods except  `MURMUR3`, `PUNCTUATION` or `UUID`.
-  # With other methods fill in the HMAC key.
+  # With other methods, optionally fill in the HMAC key.
   config :key, :validate => :string
 
   # When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512` and `MD5` fingerprint methods will produce
@@ -44,10 +43,12 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   # The fingerprint method to use.
   #
-  # If set to `SHA1`, `SHA256`, `SHA384`, `SHA512`, or `MD5` the
-  # cryptographic keyed-hash function with the same name will be used to
-  # generate the fingerprint. If set to `MURMUR3` the non-cryptographic
-  # MurmurHash function will be used.
+  # If set to `SHA1`, `SHA256`, `SHA384`, `SHA512`, or `MD5` and a key is set,
+  # the cryptographic hash function with the same name will be used to generate
+  # the fingerprint. When a key set, the keyed-hash (HMAC) digest function will
+  # be used.
+  #
+  # If set to `MURMUR3` the non-cryptographic MurmurHash function will be used.
   #
   # If set to `IPV4_NETWORK` the input data needs to be a IPv4 address and
   # the hash value will be the masked-out address using the number of bits
@@ -98,14 +99,6 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     when :PUNCTUATION
       # nothing
     else
-      if @key.nil?
-        raise LogStash::ConfigurationError, I18n.t(
-          "logstash.runner.configuration.invalid_plugin_register",
-          :plugin => "filter",
-          :type => "fingerprint",
-          :error => "Key value is empty. Please fill in an encryption key"
-        )
-      end
       class << self; alias_method :fingerprint, :fingerprint_openssl; end
       @digest = select_digest(@method)
     end
@@ -161,11 +154,19 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   def fingerprint_openssl(data)
     # in JRuby 1.7.11 outputs as ASCII-8BIT
-    if @base64encode
-      hash  = OpenSSL::HMAC.digest(@digest, @key, data.to_s)
-      Base64.strict_encode64(hash).force_encoding(Encoding::UTF_8)
+    if @key.nil?
+      if @base64encode
+        @digest.base64digest(data.to_s).force_encoding(Encoding::UTF_8)
+      else
+        @digest.hexdigest(data.to_s).force_encoding(Encoding::UTF_8)
+      end
     else
-      OpenSSL::HMAC.hexdigest(@digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+      if @base64encode
+        hash = OpenSSL::HMAC.digest(@digest, @key, data.to_s)
+        Base64.strict_encode64(hash).force_encoding(Encoding::UTF_8)
+      else
+        OpenSSL::HMAC.hexdigest(@digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+      end
     end
   end
 
