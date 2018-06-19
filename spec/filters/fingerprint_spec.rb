@@ -35,7 +35,22 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA1 alogrithm" do
+  describe "fingerprint string with SHA1 algorithm" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          method => 'SHA1'
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject.get("fingerprint") } == "3a5076c520b4b463f43806896ea0b3978d09dcae"
+    end
+  end
+
+  describe "fingerprint string with SHA1 HMAC algorithm" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -51,7 +66,7 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA1 alogrithm on all event fields" do
+  describe "fingerprint string with SHA1 HMAC algorithm on all event fields" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -68,7 +83,23 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA1 alogrithm and base64 encoding" do
+  describe "fingerprint string with SHA1 algorithm and base64 encoding" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          method => 'SHA1'
+          base64encode => true
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject.get("fingerprint") } == "OlB2xSC0tGP0OAaJbqCzl40J3K4="
+    end
+  end
+
+  describe "fingerprint string with SHA1 HMAC algorithm and base64 encoding" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -85,7 +116,22 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA256 alogrithm" do
+  describe "fingerprint string with SHA256 algorithm" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          method => 'SHA256'
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject.get("fingerprint") } == "4dabcab210766e35f03e77120e6986d6e6d4752b2a9ff22980b9253d026080d8"
+    end
+  end
+
+  describe "fingerprint string with SHA256 HMAC algorithm" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -101,7 +147,7 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA256 alogrithm and base64 encoding" do
+  describe "fingerprint string with SHA256 HMAC algorithm and base64 encoding" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -118,7 +164,22 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA384 alogrithm" do
+  describe "fingerprint string with SHA384 algorithm" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          method => 'SHA384'
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject.get("fingerprint") } == "fd605b0a3af3e04ce0d7a0b0d9c48d67a12dab811f60072e6eae84e35d567793ffb68a1807536f11c90874065c2a4392"
+    end
+  end
+
+  describe "fingerprint string with SHA384 HMAC algorithm" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -134,7 +195,7 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA384 alogrithm and base64 encoding" do
+  describe "fingerprint string with SHA384 HMAC algorithm and base64 encoding" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -151,7 +212,22 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA512 alogrithm" do
+  describe "fingerprint string with SHA512 algorithm" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          method => 'SHA512'
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject.get("fingerprint") } == "5468e2dc64ea92b617782aae884b35af60041ac9e168a283615b6a462c54c13d42fa9542cce9b7d76a8124ac6616818905e3e5dd35d6e519f77c3b517558639a"
+    end
+  end
+
+  describe "fingerprint string with SHA512 HMAC algorithm" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -167,7 +243,7 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA512 alogrithm and base64 encoding" do
+  describe "fingerprint string with SHA512 HMAC algorithm and base64 encoding" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -184,7 +260,22 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with MD5 alogrithm" do
+  describe "fingerprint string with MD5 algorithm" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          method => 'MD5'
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "123.123.123.123") do
+      insist { subject.get("fingerprint") } == "ccdd8d3d940a01b2fb3258c059924c0d"
+    end
+  end
+
+  describe "fingerprint string with MD5 HMAC algorithm" do
     config <<-CONFIG
       filter {
         fingerprint {
@@ -200,7 +291,7 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with MD5 alogrithm and base64 encoding" do
+  describe "fingerprint string with MD5 HMAC algorithm and base64 encoding" do
     config <<-CONFIG
       filter {
         fingerprint {
