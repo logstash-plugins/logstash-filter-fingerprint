@@ -104,6 +104,21 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     end
   end
 
+  def serialize(event)
+    to_string = ""
+    if event.respond_to?(:to_hash)
+      to_string << "{"
+      event.to_hash.sort.map do |k,v|
+        to_string << "#{k}:#{serialize(v)},"
+      end
+      to_string << "}"
+    else
+      to_string << "#{event}"
+    end
+
+    return to_string
+  end
+
   def filter(event)
     case @method
     when :UUID
@@ -120,12 +135,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       if @concatenate_sources || @concatenate_all_fields
         to_string = ""
         if @concatenate_all_fields
-          event.to_hash.sort.map do |k,v|
-            to_string << "|#{k}|#{v}"
-          end
+          to_string << serialize(event)
         else
           @source.sort.each do |k|
-            to_string << "|#{k}|#{event.get(k)}"
+            to_string << "|#{k}|#{serialize(event.get(k))}"
           end
         end
         to_string << "|"
