@@ -71,10 +71,14 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # of the source fields given.
   config :concatenate_sources, :validate => :boolean, :default => false
 
-  # When set to `true` and `method` isn't `UUID` or `PUNCTUATION`, the 
-  # plugin concatenates the names and values of all fields in the event 
+  # When set to `true` and `method` isn't `UUID` or `PUNCTUATION`, the
+  # plugin concatenates the names and values of all fields in the event
   # without having to proide the field names in the `source` attribute
   config :concatenate_all_fields, :validate => :boolean, :default => false
+
+  # The name(s) of field(s) to exclude when `concatenate_all_fields` is set to
+  # true.
+  config :exclude, :validate => :array, :default => ''
 
   def register
     # convert to symbol for faster comparisons
@@ -104,12 +108,15 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     end
   end
 
-  def serialize(event)
+  def serialize(event, depth=0)
     to_string = ""
     if event.respond_to?(:to_hash)
+      depth += 1
       to_string << "{"
       event.to_hash.sort.map do |k,v|
-        to_string << "#{k}:#{serialize(v)},"
+        if not (depth == 1 and @exclude.include?(k))
+          to_string << "#{k}:#{serialize(v, depth)},"
+        end
       end
       to_string << "}"
     else
