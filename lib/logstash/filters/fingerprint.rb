@@ -63,6 +63,19 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # be generated. The result will be random and thus not a consistent hash.
   config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
 
+  # When set to `true` and either `concatenate_sources` or
+  # `concatenate_all_fields` is set then the input fields will be deep sorted when
+  # serializing prior to fingerprint calculation.
+  # This is needed when you have nested hashes because otherwise the order of
+  # the inner hashes is non-deterministc and is going to result in different
+  # fingerprints for the same inputs.
+  #
+  # When you just start using this plugin, it should be save to set `deep_sort`
+  # to `true` from the beginning. The reason this is not the default is because
+  # the serialization format changes with `deep_sort` even if there are no
+  # nested hashes.
+  config :deep_sort, :validate => :boolean, :default => false
+
   # When set to `true` and `method` isn't `UUID` or `PUNCTUATION`, the
   # plugin concatenates the names and values of all fields given in the
   # `source` option into one string (like the old checksum filter) before
@@ -135,10 +148,22 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       if @concatenate_sources || @concatenate_all_fields
         to_string = ""
         if @concatenate_all_fields
-          to_string << serialize(event)
+          if @deep_sort
+            to_string << serialize(event)
+          else
+            # Legacy support.
+            event.to_hash.sort.map do |k,v|
+              to_string << "|#{k}|#{v}"
+            end
+          end
         else
           @source.sort.each do |k|
-            to_string << "|#{k}|#{serialize(event.get(k))}"
+            if @deep_sort
+              to_string << "|#{k}|#{serialize(event.get(k))}"
+            else
+              # Legacy support.
+              to_string << "|#{k}|#{event.get(k)}"
+            end
           end
         end
         to_string << "|"

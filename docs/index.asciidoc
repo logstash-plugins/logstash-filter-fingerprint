@@ -63,6 +63,24 @@ filter plugins.
 When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512` and `MD5` fingerprint methods will produce
 base64 encoded rather than hex encoded strings.
 
+[id="plugins-{type}s-{plugin}-deep_sort"]
+===== `deep_sort`
+
+  * Value type is <<boolean,boolean>>
+  * Default value is `false`
+
+When set to `true` and either `concatenate_sources` or
+`concatenate_all_fields` is set then the input fields will be deep sorted when
+serializing prior to fingerprint calculation.
+This is needed when you have nested hashes because otherwise the order of
+the inner hashes is non-deterministc and is going to result in different
+fingerprints for the same inputs.
+
+When you just start using this plugin, it should be save to set `deep_sort`
+to `true` from the beginning. The reason this is not the default is because
+the serialization format changes with `deep_sort` even if there are no
+nested hashes.
+
 [id="plugins-{type}s-{plugin}-concatenate_sources"]
 ===== `concatenate_sources` 
 
