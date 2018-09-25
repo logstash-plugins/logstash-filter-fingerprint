@@ -63,14 +63,13 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # be generated. The result will be random and thus not a consistent hash.
   config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
 
-  # When set to `true` and either `concatenate_sources` or
-  # `concatenate_all_fields` is set then the input fields will be deep sorted when
+  # When set to `true` then the input fields will be deep sorted when
   # serializing prior to fingerprint calculation.
   # This is needed when you have nested hashes because otherwise the order of
-  # the inner hashes is non-deterministc and is going to result in different
+  # the inner hashes is non-deterministic and is going to result in different
   # fingerprints for the same inputs.
   #
-  # When you just start using this plugin, it should be save to set `deep_sort`
+  # When you just start using this plugin, it should be safe to set `deep_sort`
   # to `true` from the beginning. The reason this is not the default is because
   # the serialization format changes with `deep_sort` even if there are no
   # nested hashes.
@@ -119,13 +118,14 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   def serialize(event)
     to_string = ""
-    if event.respond_to?(:to_hash)
+    if @deep_sort and event.respond_to?(:to_hash)
       to_string << "{"
       event.to_hash.sort.map do |k,v|
         to_string << "#{k}:#{serialize(v)},"
       end
       to_string << "}"
     else
+      # If not a hash and backwards compatibility.
       to_string << "#{event}"
     end
 
@@ -151,19 +151,13 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
           if @deep_sort
             to_string << serialize(event)
           else
-            # Legacy support.
             event.to_hash.sort.map do |k,v|
               to_string << "|#{k}|#{v}"
             end
           end
         else
           @source.sort.each do |k|
-            if @deep_sort
-              to_string << "|#{k}|#{serialize(event.get(k))}"
-            else
-              # Legacy support.
-              to_string << "|#{k}|#{event.get(k)}"
-            end
+            to_string << "|#{k}|#{serialize(event.get(k))}"
           end
         end
         to_string << "|"
@@ -173,9 +167,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         @source.each do |field|
           next unless event.include?(field)
           if event.get(field).is_a?(Array)
-            event.set(@target, event.get(field).collect { |v| fingerprint(v) })
+            event.set(@target, event.get(field).collect { |v| fingerprint(serialize(v)) })
           else
-            event.set(@target, fingerprint(event.get(field)))
+            event.set(@target, fingerprint(serialize(event.get(field))))
           end
         end
       end

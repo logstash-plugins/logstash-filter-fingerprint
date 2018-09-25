@@ -69,14 +69,13 @@ base64 encoded rather than hex encoded strings.
   * Value type is <<boolean,boolean>>
   * Default value is `false`
 
-When set to `true` and either `concatenate_sources` or
-`concatenate_all_fields` is set then the input fields will be deep sorted when
+When set to `true` then the input fields will be deep sorted when
 serializing prior to fingerprint calculation.
 This is needed when you have nested hashes because otherwise the order of
-the inner hashes is non-deterministc and is going to result in different
+the inner hashes is non-deterministic and is going to result in different
 fingerprints for the same inputs.
 
-When you just start using this plugin, it should be save to set `deep_sort`
+When you just start using this plugin, it should be safe to set `deep_sort`
 to `true` from the beginning. The reason this is not the default is because
 the serialization format changes with `deep_sort` even if there are no
 nested hashes.
