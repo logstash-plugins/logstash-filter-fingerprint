@@ -64,7 +64,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # If set to `UUID`, a
   # https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID] will
   # be generated. The result will be random and thus not a consistent hash.
-  config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
+  config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "MURMUR3_128", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
 
   # When set to `true` and `method` isn't `UUID` or `PUNCTUATION`, the
   # plugin concatenates the names and values of all fields given in the
@@ -102,6 +102,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       class << self; alias_method :fingerprint, :fingerprint_ipv4_network; end
     when :MURMUR3
       class << self; alias_method :fingerprint, :fingerprint_murmur3; end
+    when :MURMUR3_128
+      class << self; alias_method :fingerprint, :fingerprint_murmur3_128; end
     when :UUID
       # nothing
     when :PUNCTUATION
@@ -207,6 +209,17 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       MurmurHash3::V32.int64_hash(value)
     else
       MurmurHash3::V32.str_hash(value.to_s)
+    end
+  end
+
+  def fingerprint_murmur3_128(value)
+    case value
+    when Fixnum
+      MurmurHash3::V128.int32_hash(value, 2)
+    when Bignum
+      MurmurHash3::V128.int64_hash(value, 2)
+    else
+      MurmurHash3::V128.str_hash(value.to_s, 2)
     end
   end
 
