@@ -83,6 +83,24 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
+  describe "fingerprint string with SHA1 HMAC algorithm on all event fields with deep_sort" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          concatenate_all_fields => true
+          key => "longencryptionkey"
+          method => 'SHA1'
+          deep_sort => true
+        }
+      }
+    CONFIG
+
+    # The @timestamp field is specified in this sample event as we need the event contents to be constant for the tests
+    sample("@timestamp" => "2017-07-26T14:44:27.064Z", "clientip" => "123.123.123.123", "message" => "This is a test message", "log_level" => "INFO", "offset" => 123456789, "type" => "test", "beat" => {"hostname" => "gnu.example.com", "name" => "gnu.example.com", "version" => "5.2.2"}) do
+      insist { subject.get("fingerprint") } == "e39ef60e5fb431aa7f9847a4591bf1ffe49cd410"
+    end
+  end
+
   describe "fingerprint string with SHA1 algorithm and base64 encoding" do
     config <<-CONFIG
       filter {
