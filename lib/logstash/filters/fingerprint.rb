@@ -152,8 +152,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   end
 
   def fingerprint_openssl(data)
-    Thread.current[:digest] ||= select_digest(@method)
-    digest = Thread.current[:digest]
+    digest_string = "digest-#{id}"
+    Thread.current[digest_string] ||= select_digest(@method)
+    digest = Thread.current[digest_string]
     # in JRuby 1.7.11 outputs as ASCII-8BIT
     if @key.nil?
       if @base64encode
