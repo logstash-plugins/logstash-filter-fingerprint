@@ -100,7 +100,6 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       # nothing
     else
       class << self; alias_method :fingerprint, :fingerprint_openssl; end
-      @digest = select_digest(@method)
     end
   end
 
@@ -153,19 +152,21 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   end
 
   def fingerprint_openssl(data)
+    Thread.current[:digest] ||= select_digest(@method)
+    digest = Thread.current[:digest]
     # in JRuby 1.7.11 outputs as ASCII-8BIT
     if @key.nil?
       if @base64encode
-        @digest.base64digest(data.to_s).force_encoding(Encoding::UTF_8)
+        digest.base64digest(data.to_s).force_encoding(Encoding::UTF_8)
       else
-        @digest.hexdigest(data.to_s).force_encoding(Encoding::UTF_8)
+        digest.hexdigest(data.to_s).force_encoding(Encoding::UTF_8)
       end
     else
       if @base64encode
-        hash = OpenSSL::HMAC.digest(@digest, @key, data.to_s)
+        hash = OpenSSL::HMAC.digest(digest, @key, data.to_s)
         Base64.strict_encode64(hash).force_encoding(Encoding::UTF_8)
       else
-        OpenSSL::HMAC.hexdigest(@digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+        OpenSSL::HMAC.hexdigest(digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
       end
     end
   end

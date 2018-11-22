@@ -1,3 +1,6 @@
+## 3.2.1
+  - Fixed concurrent SHA fingerprinting by making the instances thread local
+
 ## 3.2.0
   - Added support for non-keyed, regular hash functions [#18](https://github.com/logstash-plugins/logstash-filter-fingerprint/issues/18)
 
