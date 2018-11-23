@@ -152,6 +152,11 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   end
 
   def fingerprint_openssl(data)
+    # since OpenSSL::Digest instances aren't thread safe, we must ensure that
+    # each pipeline worker thread gets its own instance.
+    # Also, since a logstash pipeline may contain multiple fingerprint filters
+    # we must include the id in the thread local variable name, so that we can
+    # store multiple digest instances
     digest_string = "digest-#{id}"
     Thread.current[digest_string] ||= select_digest(@method)
     digest = Thread.current[digest_string]
