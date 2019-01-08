@@ -6,6 +6,7 @@ require "openssl"
 require "ipaddr"
 require "murmurhash3"
 require "securerandom"
+require "json"
 
 # Create consistent hashes (fingerprints) of one or more fields and store
 # the result in a new field.
@@ -75,6 +76,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # plugin concatenates the names and values of all fields in the event 
   # without having to proide the field names in the `source` attribute
   config :concatenate_all_fields, :validate => :boolean, :default => false
+  
+  # Excluded fields from all concatenated fields. Can be applied only if
+  # `concatenate_all_fields` is set.
+  config :exclude_sources, :validate => :array, :default => []
 
   def register
     # convert to symbol for faster comparisons
@@ -103,6 +108,22 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     end
   end
 
+  def nested_delete(nested_hash, keys)
+    keys_copy = keys.clone
+    keys.each do |k|
+      keys_copy.delete(k)
+      if nested_hash[k].is_a?(Hash) && keys_copy.length > 0
+        nested_hash[k] = nested_delete(nested_hash[k], keys_copy)
+        if nested_hash[k].empty?
+          nested_hash.delete(k)
+        end
+      else
+        nested_hash.delete(k)
+      end
+    end
+  return nested_hash
+  end
+
   def filter(event)
     case @method
     when :UUID
@@ -119,8 +140,20 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       if @concatenate_sources || @concatenate_all_fields
         to_string = ""
         if @concatenate_all_fields
-          event.to_hash.sort.map do |k,v|
-            to_string << "|#{k}|#{v}"
+          if @exclude_sources.any?
+            event_sources = JSON.parse(event.to_json)
+            @exclude_sources.each do |key|
+              if key.is_a?(Array)
+                nested_delete(event_sources, key)
+              else
+                event_sources.delete(key)
+              end
+            end
+            to_string << JSON.generate(event_sources)
+          else
+            event.to_hash.sort.map do |k,v|
+              to_string << "|#{k}|#{v}"
+            end
           end
         else
           @source.sort.each do |k|
