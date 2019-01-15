@@ -78,7 +78,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   config :concatenate_all_fields, :validate => :boolean, :default => false
   
   # Excluded fields from all concatenated fields. Can be applied only if
-  # `concatenate_all_fields` is set.
+  # `concatenate_all_fields` is set. For excluding nested key from the event
+  # use nested list in `exclude_sources` (e.g. excluding event["a"] and 
+  # event["b"]["cc"] from `event = {"a": 1, "b": { "bb": 2, "cc": 3 }}` 
+  # use `exclude_sources => ["a", ["b", "cc"]]`).
   config :exclude_sources, :validate => :array, :default => []
 
   def register
