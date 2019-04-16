@@ -142,7 +142,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     else
       if @concatenate_sources || @concatenate_all_fields
         to_string = ""
-        if @concatenate_all_fields
+        if @concatenate_all_fields 
+          hash_event = event.to_hash         
           if @exclude_sources.any?
             event_sources = JSON.parse(event.to_json)
             @exclude_sources.each do |key|
@@ -152,11 +153,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
                 event_sources.delete(key)
               end
             end
-            to_string << JSON.generate(event_sources)
-          else
-            event.to_hash.sort.map do |k,v|
-              to_string << "|#{k}|#{v}"
-            end
+            hash_event = event_sources
+          end
+          hash_event.sort.map do |k,v|
+            to_string << "|#{k}|#{v}"
           end
         else
           @source.sort.each do |k|
