@@ -6,6 +6,7 @@ require "openssl"
 require "ipaddr"
 require "murmurhash3"
 require "securerandom"
+require "deepsort"
 
 # Create consistent hashes (fingerprints) of one or more fields and store
 # the result in a new field.
@@ -76,6 +77,11 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # without having to proide the field names in the `source` attribute
   config :concatenate_all_fields, :validate => :boolean, :default => false
 
+  # Deep sort hashes to preserve fingerprint for identical deeply nested
+  # hashes. This option has effect when using `concatenate_all_fields`. As
+  # default the deep_sort is false for backward compatibility.
+  config :deep_sort, :validate => :boolean, :default => false
+
   def register
     # convert to symbol for faster comparisons
     @method = @method.to_sym
@@ -119,7 +125,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       if @concatenate_sources || @concatenate_all_fields
         to_string = ""
         if @concatenate_all_fields
-          event.to_hash.sort.map do |k,v|
+          sorted_hash = @deep_sort ? event.to_hash.deep_sort : event.to_hash.sort
+          sorted_hash.map do |k,v|
             to_string << "|#{k}|#{v}"
           end
         else
