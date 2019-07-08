@@ -6,7 +6,6 @@ require "openssl"
 require "ipaddr"
 require "murmurhash3"
 require "securerandom"
-require "json"
 
 # Create consistent hashes (fingerprints) of one or more fields and store
 # the result in a new field.
@@ -145,7 +144,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         if @concatenate_all_fields 
           hash_event = event.to_hash         
           if @exclude_sources.any?
-            event_sources = JSON.parse(event.to_json)
+            event_sources = hash_event
             @exclude_sources.each do |key|
               if key.is_a?(Array)
                 nested_delete(event_sources, key)
