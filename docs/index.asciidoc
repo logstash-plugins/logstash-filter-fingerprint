@@ -44,7 +44,7 @@ This plugin supports the following configuration options plus the <<plugins-{typ
 | <<plugins-{type}s-{plugin}-concatenate_sources>> |<<boolean,boolean>>|No
 | <<plugins-{type}s-{plugin}-concatenate_all_fields>> |<<boolean,boolean>>|No
 | <<plugins-{type}s-{plugin}-key>> |<<string,string>>|No
-| <<plugins-{type}s-{plugin}-method>> |<<string,string>>, one of `["SHA1", "SHA256", "SHA384", "SHA512", "MD5", "MURMUR3", "IPV4_NETWORK", "UUID", "PUNCTUATION"]`|Yes
+| <<plugins-{type}s-{plugin}-method>> |<<string,string>>, one of `["SHA1", "SHA256", "SHA384", "SHA512", "MD5", "MURMUR3", "IPV4_NETWORK", "IPV6_NETWORK", "UUID", "PUNCTUATION"]`|Yes
 | <<plugins-{type}s-{plugin}-source>> |<<array,array>>|No
 | <<plugins-{type}s-{plugin}-target>> |<<string,string>>|No
 |=======================================================================
@@ -95,14 +95,14 @@ source fields given.
   * Value type is <<string,string>>
   * There is no default value for this setting.
 
-When used with the `IPV4_NETWORK` method fill in the subnet prefix length.
+When used with the `IPV4_NETWORK` or `IPV6_NETWORK` method fill in the subnet prefix length.
 With other methods, optionally fill in the HMAC key.
 
 [id="plugins-{type}s-{plugin}-method"]
 ===== `method` 
 
   * This is a required setting.
-  * Value can be any of: `SHA1`, `SHA256`, `SHA384`, `SHA512`, `MD5`, `MURMUR3`, `IPV4_NETWORK`, `UUID`, `PUNCTUATION`
+  * Value can be any of: `SHA1`, `SHA256`, `SHA384`, `SHA512`, `MD5`, `MURMUR3`, `IPV4_NETWORK`, `IPV6_NETWORK`, `UUID`, `PUNCTUATION`
   * Default value is `"SHA1"`
 
 The fingerprint method to use.
@@ -118,6 +118,11 @@ If set to `IPV4_NETWORK` the input data needs to be a IPv4 address and
 the hash value will be the masked-out address using the number of bits
 specified in the `key` option. For example, with "1.2.3.4" as the input
 and `key` set to 16, the hash becomes "1.2.0.0".
+
+If set to `IPV6_NETWORK` the input data needs to be a IPv6 address and
+the hash value will be the masked-out address using the number of bits
+specified in the `key` option. For example, with "2001:db8:85a3::8a2e:370:7334" as the input
+and `key` set to 112, the hash becomes "2001:db8:85a3::8a2e:370:0".
 
 If set to `PUNCTUATION`, all non-punctuation characters will be removed
 from the input string.
