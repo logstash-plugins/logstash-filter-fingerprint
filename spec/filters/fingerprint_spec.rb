@@ -20,6 +20,22 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
+  describe "fingerprint ipaddress with IPV6_NETWORK method" do
+    config <<-CONFIG
+      filter {
+        fingerprint {
+          source => ["clientip"]
+          method => "IPV6_NETWORK"
+          key => 112
+        }
+      }
+    CONFIG
+
+    sample("clientip" => "2001:db8:85a3::8a2e:370:7334") do
+      insist { subject.get("fingerprint") } == "2001:db8:85a3::8a2e:370:0"
+    end
+  end
+
   describe "fingerprint string with MURMUR3 method" do
     config <<-CONFIG
       filter {
