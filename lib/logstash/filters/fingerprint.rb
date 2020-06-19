@@ -75,6 +75,13 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # plugin concatenates the names and values of all fields in the event 
   # without having to proide the field names in the `source` attribute
   config :concatenate_all_fields, :validate => :boolean, :default => false
+  
+  # Excluded fields from all concatenated fields. Can be applied only if
+  # `concatenate_all_fields` is set. For excluding nested key from the event
+  # use nested list in `exclude_sources` (e.g. excluding event["a"] and 
+  # event["b"]["cc"] from `event = {"a": 1, "b": { "bb": 2, "cc": 3 }}` 
+  # use `exclude_sources => ["a", ["b", "cc"]]`).
+  config :exclude_sources, :validate => :array, :default => []
 
   def register
     # convert to symbol for faster comparisons
@@ -103,6 +110,22 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     end
   end
 
+  def nested_delete(nested_hash, keys)
+    keys_copy = keys.clone
+    keys.each do |k|
+      keys_copy.delete(k)
+      if nested_hash[k].is_a?(Hash) && keys_copy.length > 0
+        nested_hash[k] = nested_delete(nested_hash[k], keys_copy)
+        if nested_hash[k].empty?
+          nested_hash.delete(k)
+        end
+      else
+        nested_hash.delete(k)
+      end
+    end
+  return nested_hash
+  end
+
   def filter(event)
     case @method
     when :UUID
@@ -118,8 +141,20 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     else
       if @concatenate_sources || @concatenate_all_fields
         to_string = ""
-        if @concatenate_all_fields
-          event.to_hash.sort.map do |k,v|
+        if @concatenate_all_fields 
+          hash_event = event.to_hash         
+          if @exclude_sources.any?
+            event_sources = hash_event
+            @exclude_sources.each do |key|
+              if key.is_a?(Array)
+                nested_delete(event_sources, key)
+              else
+                event_sources.delete(key)
+              end
+            end
+            hash_event = event_sources
+          end
+          hash_event.sort.map do |k,v|
             to_string << "|#{k}|#{v}"
           end
         else
