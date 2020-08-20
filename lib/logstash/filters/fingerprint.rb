@@ -119,12 +119,12 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       if @concatenate_sources || @concatenate_all_fields
         to_string = ""
         if @concatenate_all_fields
-          event.to_hash.sort.map do |k,v|
+          deep_sort_hashes(event.to_hash).each do |k,v|
             to_string << "|#{k}|#{v}"
           end
         else
           @source.sort.each do |k|
-            to_string << "|#{k}|#{event.get(k)}"
+            to_string << "|#{k}|#{deep_sort_hashes(event.get(k))}"
           end
         end
         to_string << "|"
@@ -134,9 +134,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         @source.each do |field|
           next unless event.include?(field)
           if event.get(field).is_a?(Array)
-            event.set(@target, event.get(field).collect { |v| fingerprint(v) })
+            event.set(@target, event.get(field).collect { |v| fingerprint(deep_sort_hashes(v)) })
           else
-            event.set(@target, fingerprint(event.get(field)))
+            event.set(@target, fingerprint(deep_sort_hashes(event.get(field))))
           end
         end
       end
@@ -145,6 +145,20 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   end
 
   private
+  def deep_sort_hashes(object)
+    case object
+    when Hash
+      sorted_hash = Hash.new
+      object.sort.each do |sorted_key, value|
+        sorted_hash[sorted_key] = deep_sort_hashes(value)
+      end
+      sorted_hash
+    when Array
+      object.map {|element| deep_sort_hashes(element) }
+    else
+      object
+    end
+  end
 
   def fingerprint_ipv4_network(ip_string)
     # in JRuby 1.7.11 outputs as US-ASCII
