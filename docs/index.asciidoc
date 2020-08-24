@@ -89,6 +89,15 @@ fingerprint computation. If `false` and at least one source field is
 given, the target field will be an array with fingerprints of the 
 source fields given.
 
+[id="plugins-{type}s-{plugin}-exclude"]
+===== `exclude` 
+
+  * Value type is <<array,array>>
+  * Default value is ``
+
+The name(s) of field(s) to exclude when `concatenate_all_fields` is set to
+`true`.
+
 [id="plugins-{type}s-{plugin}-key"]
 ===== `key` 
 
