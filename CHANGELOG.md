@@ -1,3 +1,6 @@
+## 3.2.2
+  - Fixed lack of consistent fingerprints on Hash/Map objects [#55](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/55)
+
 ## 3.2.1
   - Fixed concurrent SHA fingerprinting by making the instances thread local
 
