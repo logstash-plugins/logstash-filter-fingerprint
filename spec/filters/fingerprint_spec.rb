@@ -230,4 +230,58 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
+  describe "tolerance to hash order" do
+    # insertion order can influence the result of to_hash's keys
+    let(:data1) { {
+        "a" => {"a0" => 0, "a1" => 1},
+        "b" => {"b0" => 0, "b1" => 1},
+    } }
+    let(:event1) { LogStash::Event.new(data1) }
+    let(:data2) { {
+        "b" => {"b1" => 1, "b0" => 0},
+        "a" => {"a1" => 1, "a0" => 0},
+    } }
+    let(:event2) { LogStash::Event.new(data2) }
+    let(:config) { { "source" => [ "a" ] } }
+
+    before(:each) do
+      # for testing purposes we want to ensure the hash order is different.
+      # since we can't easily control the order on the underlying Map,
+      # we're mocking the order here:
+      allow(event1).to receive(:to_hash).and_return(data1)
+      allow(event2).to receive(:to_hash).and_return(data2)
+      # by default event.get(key) fetches data from the event.
+      # mocking the default value has to be done first, and only
+      # then we can mock the getting "a" and "b"
+      allow(event1).to receive(:get).and_call_original
+      allow(event2).to receive(:get).and_call_original
+      # mock event.get("a") and event.get("b") for both events
+      # so we can inject an inconsistent order for the tests
+      allow(event1).to receive(:get).with("a") {|arg| data1["a"] }
+      allow(event1).to receive(:get).with("b") {|arg| data1["b"] }
+      allow(event2).to receive(:get).with("a") {|arg| data2["a"] }
+      allow(event2).to receive(:get).with("b") {|arg| data2["b"] }
+      plugin.filter(event1)
+      plugin.filter(event2)
+    end
+    it "computes the same hash" do
+      # confirm the order of the keys in the nested hash is different
+      # (of course it is, we just mocked the to_hash return)
+      expect(event1.to_hash["a"].keys).to_not eq(event2.to_hash["a"].keys)
+      # let's check that the fingerprint doesn't care about the insertion order
+      expect(event1.get("fingerprint")).to eq(event2.get("fingerprint"))
+    end
+    context "concatenate_sources" do
+      let("config") { { "source" => [ "a", "b"], "concatenate_sources" => true } }
+      it "computes the same hash" do
+        expect(event1.get("fingerprint")).to eq(event2.get("fingerprint"))
+      end
+    end
+    context "concatenate_all_fields => true" do
+      let(:config) { { "concatenate_all_fields" => true } }
+      it "computes the same hash" do
+        expect(event1.get("fingerprint")).to eq(event2.get("fingerprint"))
+      end
+    end
+  end
 end
