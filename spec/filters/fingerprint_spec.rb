@@ -18,11 +18,11 @@ describe LogStash::Filters::Fingerprint do
 
   context "with a string field" do
     let(:data) { {"clientip" => "123.123.123.123" } }
-    let(:config) { super.merge("source" => ["clientip" ]) }
+    let(:config) { super().merge("source" => ["clientip" ]) }
 
     describe "the IPV4_NETWORK method" do
       let(:fingerprint_method) { "IPV4_NETWORK" }
-      let(:config) { super.merge("key" => 24) }
+      let(:config) { super().merge("key" => 24) }
 
       it "fingerprints the ip as the network" do
         expect(fingerprint).to eq("123.123.123.0")
@@ -45,20 +45,20 @@ describe LogStash::Filters::Fingerprint do
       end
 
       context "with HMAC" do
-        let(:config) { super.merge("key" => "longencryptionkey") }
+        let(:config) { super().merge("key" => "longencryptionkey") }
 
         it "fingerprints the value" do
           expect(fingerprint).to eq("fdc60acc4773dc5ac569ffb78fcb93c9630797f4")
         end
         context "with HMAC and base64 encoding" do
-          let(:config) { super.merge("base64encode" => true) }
+          let(:config) { super().merge("base64encode" => true) }
           it "fingerprints the value" do
             expect(fingerprint).to eq("/cYKzEdz3FrFaf+3j8uTyWMHl/Q=")
           end
         end
       end
       context "and base64 encoding" do
-        let(:config) { super.merge("base64encode" => true) }
+        let(:config) { super().merge("base64encode" => true) }
         it "fingerprints the value" do
           expect(fingerprint).to eq("OlB2xSC0tGP0OAaJbqCzl40J3K4=")
         end
@@ -71,12 +71,12 @@ describe LogStash::Filters::Fingerprint do
         expect(fingerprint).to eq("4dabcab210766e35f03e77120e6986d6e6d4752b2a9ff22980b9253d026080d8")
       end
       context "with HMAC" do
-        let(:config) { super.merge("key" => "longencryptionkey") }
+        let(:config) { super().merge("key" => "longencryptionkey") }
         it "fingerprints the value" do
           expect(fingerprint).to eq("345bec3eff242d53b568916c2610b3e393d885d6b96d643f38494fd74bf4a9ca")
         end
         context "and base64 encoding" do
-          let(:config) { super.merge("base64encode" => true) }
+          let(:config) { super().merge("base64encode" => true) }
           it "fingerprints the value" do
             expect(fingerprint).to eq("NFvsPv8kLVO1aJFsJhCz45PYhda5bWQ/OElP10v0qco=")
           end
@@ -90,12 +90,12 @@ describe LogStash::Filters::Fingerprint do
         expect(fingerprint).to eq("fd605b0a3af3e04ce0d7a0b0d9c48d67a12dab811f60072e6eae84e35d567793ffb68a1807536f11c90874065c2a4392")
       end
       context "with HMAC" do
-        let(:config) { super.merge("key" => "longencryptionkey") }
+        let(:config) { super().merge("key" => "longencryptionkey") }
         it "fingerprints the value" do
           expect(fingerprint).to eq("22d4c0e8c4fbcdc4887d2038fca7650f0e2e0e2457ff41c06eb2a980dded6749561c814fe182aff93e2538d18593947a")
         end
         context "and base64 encoding" do
-          let(:config) { super.merge("base64encode" => true) }
+          let(:config) { super().merge("base64encode" => true) }
           it "fingerprints the value" do
             expect(fingerprint).to eq("ItTA6MT7zcSIfSA4/KdlDw4uDiRX/0HAbrKpgN3tZ0lWHIFP4YKv+T4lONGFk5R6")
           end
@@ -108,12 +108,12 @@ describe LogStash::Filters::Fingerprint do
         expect(fingerprint).to eq("5468e2dc64ea92b617782aae884b35af60041ac9e168a283615b6a462c54c13d42fa9542cce9b7d76a8124ac6616818905e3e5dd35d6e519f77c3b517558639a")
       end
       context "with HMAC" do
-        let(:config) { super.merge("key" => "longencryptionkey") }
+        let(:config) { super().merge("key" => "longencryptionkey") }
         it "fingerprints the value" do
           expect(fingerprint).to eq("11c19b326936c08d6c50a3c847d883e5a1362e6a64dd55201a25f2c1ac1b673f7d8bf15b8f112a4978276d573275e3b14166e17246f670c2a539401c5bfdace8")
         end
         context "and base64 encoding" do
-          let(:config) { super.merge("base64encode" => true) }
+          let(:config) { super().merge("base64encode" => true) }
           it "fingerprints the value" do
             expect(fingerprint).to eq("EcGbMmk2wI1sUKPIR9iD5aE2Lmpk3VUgGiXywawbZz99i/FbjxEqSXgnbVcydeOxQWbhckb2cMKlOUAcW/2s6A==")
           end
@@ -126,12 +126,12 @@ describe LogStash::Filters::Fingerprint do
         expect(fingerprint).to eq("ccdd8d3d940a01b2fb3258c059924c0d")
       end
       context "with HMAC" do
-        let(:config) { super.merge("key" => "longencryptionkey") }
+        let(:config) { super().merge("key" => "longencryptionkey") }
         it "fingerprints the value" do
           expect(fingerprint).to eq("9336c879e305c9604a3843fc3e75948f")
         end
         context "and base64 encoding" do
-          let(:config) { super.merge("base64encode" => true) }
+          let(:config) { super().merge("base64encode" => true) }
           it "fingerprints the value" do
             expect(fingerprint).to eq("kzbIeeMFyWBKOEP8PnWUjw==")
           end
@@ -141,7 +141,7 @@ describe LogStash::Filters::Fingerprint do
   end
 
   context "multiple values in the source field" do
-    let(:config) { super.merge("source" => ["clientip" ]) }
+    let(:config) { super().merge("source" => ["clientip" ]) }
     let(:data) { { "clientip" => [ "123.123.123.123", "223.223.223.223" ] } }
 
     it "produces a fingerprint array" do
@@ -162,7 +162,7 @@ describe LogStash::Filters::Fingerprint do
   end
 
   context "when multiple fields are used" do
-    let(:config) { super.merge("source" => ['field1', 'field2']) }
+    let(:config) { super().merge("source" => ['field1', 'field2']) }
     let(:data) { { "field1" => "test1", "field2" => "test2" } }
 
     it "fingerprints the value of the last value" do
@@ -171,7 +171,7 @@ describe LogStash::Filters::Fingerprint do
     end
 
     describe "with concatenate_sources" do
-      let(:config) { super.merge("concatenate_sources" => true) }
+      let(:config) { super().merge("concatenate_sources" => true) }
       it "fingerprints the value of concatenated key/pairs" do
         # SHA1 of "|field1|test1|field2|test2|"
         expect(fingerprint).to eq("e3b6b71eedc656f1d29408264e8a75535db985cb")
@@ -181,7 +181,7 @@ describe LogStash::Filters::Fingerprint do
 
   describe "PUNCTUATION method" do
     let(:fingerprint_method) { 'PUNCTUATION' }
-    let(:config) { super.merge("source" => 'field1') }
+    let(:config) { super().merge("source" => 'field1') }
     let(:data) { { "field1" =>  "PHP Warning:  json_encode() [<a href='function.json-encode'>function.json-encode</a>]: Invalid UTF-8 sequence in argument in /var/www/htdocs/test.php on line 233" } }
 
     it "extracts punctiation as the fingerprint" do
@@ -191,10 +191,10 @@ describe LogStash::Filters::Fingerprint do
 
   context 'Timestamps' do
     epoch_time = Time.at(0).gmtime
-    let(:config) { super.merge("source" => ['@timestamp']) }
+    let(:config) { super().merge("source" => ['@timestamp']) }
 
     describe 'OpenSSL Fingerprinting' do
-      let(:config) { super.merge("key" => '0123') }
+      let(:config) { super().merge("key" => '0123') }
       let(:fingerprint_method) { "SHA1" }
       let(:data) { { "@timestamp" => epoch_time } }
       it "fingerprints the timestamp correctly" do
