@@ -72,9 +72,47 @@ base64 encoded rather than hex encoded strings.
 When set to `true` and `method` isn't `UUID` or `PUNCTUATION`, the
 plugin concatenates the names and values of all fields given in the
 `source` option into one string (like the old checksum filter) before
-doing the fingerprint computation. If `false` and multiple source
-fields are given, the target field will be an array with fingerprints
-of the source fields given.
+doing the fingerprint computation. 
+
+If `false` and multiple source fields are given, the target field will be single
+fingerprint of the last source field.
+
+**Example: `concatenate_sources`=false**
+
+This example produces a single "fingerprint" of
+"6b6390a4416131f82b6ffb509f6e779e5dd9630f". The fingerprint is computed from "birthday"
+because it is the last source field.
+
+[source,ruby]
+-----
+fingerprint {
+  source => ["user_id", "siblings", "birthday"]
+}
+-----
+
+**Example: `concatenate_sources`=false with array**
+
+If the last source field is an array, you get an array of fingerprints. 
+
+In this example, "siblings" is an array ["big brother", "little sister", "little brother"].
+
+[source,ruby]
+-----
+fingerprint {
+  source => ["user_id", "siblings"]
+}
+-----
+
+The output is:
+
+[source,ruby]
+-----
+ "fingerprint" => [
+        [0] "fdfeb16f096983ada02db49d46a8154475d700ae",
+        [1] "a85ed0f0a425b690a75fcbab6c256837bac04dad",
+        [2] "6b6390a4416131f82b6ffb509f6e779e5dd9630f"
+    ],
+-----
 
 [id="plugins-{type}s-{plugin}-concatenate_all_fields"]
 ===== `concatenate_all_fields` 
