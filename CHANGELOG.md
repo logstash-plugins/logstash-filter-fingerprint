@@ -1,3 +1,6 @@
+## 3.2.3
+  - [DOC] Expanded description for concatenate_sources behavior and provided examples [#60](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/60)
+
 ## 3.2.2
   - Fixed lack of consistent fingerprints on Hash/Map objects [#55](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/55)
 
