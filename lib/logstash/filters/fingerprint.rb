@@ -193,8 +193,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   def fingerprint_murmur3(value)
     case value
-    when Fixnum
-      MurmurHash3::V32.int_hash(value)
+    when Integer
+      MurmurHash3::V32.int64_hash(value)
     else
       MurmurHash3::V32.str_hash(value.to_s)
     end

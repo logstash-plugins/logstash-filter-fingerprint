@@ -156,7 +156,7 @@ the cryptographic hash function with the same name will be used to generate
 the fingerprint. When a key set, the keyed-hash (HMAC) digest function will
 be used.
 
-If set to `MURMUR3` the non-cryptographic MurmurHash function will be used.
+If set to `MURMUR3` the non-cryptographic 64 bit MurmurHash function will be used.
 
 If set to `IPV4_NETWORK` the input data needs to be a IPv4 address and
 the hash value will be the masked-out address using the number of bits
