@@ -87,7 +87,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
     # require any library and set the fingerprint function
     case @method
-    when :IPV4_NETWORK
+    when :IPV4_NETWORK, :IPV6_NETWORK
       if @key.nil?
         raise LogStash::ConfigurationError, I18n.t(
           "logstash.runner.configuration.invalid_plugin_register",
@@ -97,16 +97,6 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         )
       end
       class << self; alias_method :fingerprint, :fingerprint_ipv4_network; end
-    when :IPV6_NETWORK
-      if @key.nil?
-        raise LogStash::ConfigurationError, I18n.t(
-          "logstash.runner.configuration.invalid_plugin_register",
-          :plugin => "filter",
-          :type => "fingerprint",
-          :error => "Key value is empty. please fill in a subnet prefix length"
-        )
-      end
-      class << self; alias_method :fingerprint, :fingerprint_ipv6_network; end
     when :MURMUR3
       class << self; alias_method :fingerprint, :fingerprint_murmur3; end
     when :UUID
@@ -162,11 +152,6 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   private
 
   def fingerprint_ipv4_network(ip_string)
-    # in JRuby 1.7.11 outputs as US-ASCII
-    IPAddr.new(ip_string).mask(@key.to_i).to_s.force_encoding(Encoding::UTF_8)
-  end
-
-  def fingerprint_ipv6_network(ip_string)
     # in JRuby 1.7.11 outputs as US-ASCII
     IPAddr.new(ip_string).mask(@key.to_i).to_s.force_encoding(Encoding::UTF_8)
   end
