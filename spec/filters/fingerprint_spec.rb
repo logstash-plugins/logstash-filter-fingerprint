@@ -32,8 +32,18 @@ describe LogStash::Filters::Fingerprint do
     describe "the MURMUR3 method" do
       let(:fingerprint_method) { "MURMUR3" }
 
-      it "fingerprints the value" do
-        expect(fingerprint).to eq(4013733395)
+      context "string" do
+        it "fingerprints the value" do
+          expect(fingerprint).to eq(4013733395)
+        end
+      end
+
+      context "number" do
+        let(:data) { {"clientip" => 123 } }
+
+        it "fingerprints the value" do
+          expect(fingerprint).to eq(823512154)
+        end
       end
     end
 
