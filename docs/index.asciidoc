@@ -27,7 +27,7 @@ You can use this plugin to create consistent document ids when  events are
 inserted into Elasticsearch. This approach means that existing documents can be
 updated instead of creating new documents.
 
-NOTE: When the `target` option is set to `UUID` the result won't be
+NOTE: When the `method` option is set to `UUID` the result won't be
 a consistent hash but a random
 https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID].
 To generate UUIDs, prefer the {logstash-ref}/plugins-filters-uuid.html[uuid filter].
