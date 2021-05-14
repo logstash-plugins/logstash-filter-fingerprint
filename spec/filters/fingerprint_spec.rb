@@ -50,8 +50,8 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         end
       end
 
-    describe "the SHA1 method" do
-      let(:fingerprint_method) { "SHA1" }
+      describe "the SHA1 method" do
+        let(:fingerprint_method) { "SHA1" }
 
         it "fingerprints the value" do
           expect(fingerprint).to eq("3a5076c520b4b463f43806896ea0b3978d09dcae")
