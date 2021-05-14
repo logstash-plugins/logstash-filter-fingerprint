@@ -1,5 +1,5 @@
 ## 3.2.4
-  - Fixed the error in Murmur3 with Integer
+  - Fixed the error in Murmur3 with Integer [#61](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/61)
 
 ## 3.2.3
   - [DOC] Expanded description for concatenate_sources behavior and provided examples [#60](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/60)
