@@ -1,3 +1,6 @@
+## 3.3.0
+  - Add ECS compatibility [#62](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/62)
+
 ## 3.2.4
   - Fixed the error in Murmur3 with Integer [#61](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/61)
 

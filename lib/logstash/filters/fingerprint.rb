@@ -6,6 +6,7 @@ require "openssl"
 require "ipaddr"
 require "murmurhash3"
 require "securerandom"
+require "logstash/plugin_mixins/ecs_compatibility_support"
 
 # Create consistent hashes (fingerprints) of one or more fields and store
 # the result in a new field.
@@ -22,6 +23,8 @@ require "securerandom"
 # https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID].
 # To generate UUIDs, prefer the <<plugins-filters-uuid,uuid filter>>.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
+  include LogStash::PluginMixins::ECSCompatibilitySupport(:disabled, :v1, :v8 => :v1)
+
   config_name "fingerprint"
 
   # The name(s) of the source field(s) whose contents will be used
@@ -31,7 +34,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   # The name of the field where the generated fingerprint will be stored.
   # Any current contents of that field will be overwritten.
-  config :target, :validate => :string, :default => 'fingerprint'
+  config :target, :validate => :string
 
   # When used with the `IPV4_NETWORK` method fill in the subnet prefix length.
   # With other methods, optionally fill in the HMAC key.
@@ -75,6 +78,11 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # plugin concatenates the names and values of all fields in the event 
   # without having to proide the field names in the `source` attribute
   config :concatenate_all_fields, :validate => :boolean, :default => false
+
+  def initialize(*params)
+    super
+    @target ||= ecs_select[disabled: 'fingerprint', v1: '[event][hash]']
+  end
 
   def register
     # convert to symbol for faster comparisons
