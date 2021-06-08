@@ -34,7 +34,8 @@ To generate UUIDs, prefer the {logstash-ref}/plugins-filters-uuid.html[uuid filt
 
 [id="plugins-{type}s-{plugin}-ecs_metadata"]
 ==== Event Metadata and the Elastic Common Schema (ECS)
-This plugin adds a hash value to event as an identity. User can config `target` to change the output field
+This plugin adds a hash value to event as an identifier. You can configure the `target` option to change the output field.
+
 When ECS compatibility is disabled, the hash value is stored in the `fingerprint` field.
 When ECS is enabled, the value is stored in the `[event][hash]` field.
 
@@ -159,7 +160,6 @@ source fields given.
 Controls this plugin's compatibility with the
 {ecs-ref}[Elastic Common Schema (ECS)].
 See <<plugins-{type}s-{plugin}-ecs_metadata>> for detailed information.
-The value of this setting affects the _default_ value of <<plugins-{type}s-{plugin}-???>>
 
 [id="plugins-{type}s-{plugin}-key"]
 ===== `key` 
