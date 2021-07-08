@@ -192,6 +192,23 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
       end
     end
 
+    context "when utf-8 chars used" do
+      let(:config) { super().merge("source" => ['field1', 'field2']) }
+      let(:data) { {"field1"=>[{"inner_key"=>"🂡"}, {"1"=>"2"}], "field2"=>"🂡"} }
+      it "fingerprints the value of the last value" do
+        # SHA1 of "|field1|inner_key|🂡|1|2|field2|🂡|"
+        expect(fingerprint).to eq("58fa9e0e60c9f0d24b51d84cddb26732a39eeb3d")
+      end
+
+      describe "with concatenate_sources" do
+        let(:config) { super().merge("concatenate_sources" => true) }
+        it "fingerprints the value of concatenated key/pairs" do
+          # SHA1 of "|field1|inner_key|🂡|1|2|field2|🂡|"
+          expect(fingerprint).to eq("d74f41841c7cdc793a97c218d2ff18064a5f1950")
+        end
+      end
+    end
+
     describe "PUNCTUATION method" do
       let(:fingerprint_method) { 'PUNCTUATION' }
       let(:config) { super().merge("source" => 'field1') }

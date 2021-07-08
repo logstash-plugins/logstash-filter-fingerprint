@@ -1,3 +1,6 @@
+## 3.3.1
+  - Force encoding to UTF-8 when concatenating sources to generate fingerprint [#64](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/64)
+
 ## 3.3.0
   - Add ECS compatibility [#62](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/62)
 

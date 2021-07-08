@@ -128,11 +128,13 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         to_string = ""
         if @concatenate_all_fields
           deep_sort_hashes(event.to_hash).each do |k,v|
-            to_string << "|#{k}|#{v}"
+            # Force encoding to UTF-8 to get around https://github.com/jruby/jruby/issues/6748
+            to_string << "|#{k}|#{v}".force_encoding("UTF-8")
           end
         else
           @source.sort.each do |k|
-            to_string << "|#{k}|#{deep_sort_hashes(event.get(k))}"
+            # Force encoding to UTF-8 to get around https://github.com/jruby/jruby/issues/6748
+            to_string << "|#{k}|#{deep_sort_hashes(event.get(k))}".force_encoding("UTF-8")
           end
         end
         to_string << "|"
