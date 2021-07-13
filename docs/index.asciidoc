@@ -179,11 +179,9 @@ With other methods, optionally fill in the HMAC key.
 
 The fingerprint method to use.
 
-If set to `SHA1`, `SHA256`, `SHA384`, `SHA512`, or `MD5` and a key is set,
-the cryptographic hash function with the same name will be used to generate
-the fingerprint. 
-If no key is set, the keyed-hash (HMAC) digest function will
-be used.
+If set to `SHA1`, `SHA256`, `SHA384`, `SHA512`, or `MD5` and a key is set, the
+corresponding cryptographic hash function and the keyed-hash (HMAC) digest function
+are used to generate the fingerprint.
 
 If set to `MURMUR3` the non-cryptographic 64 bit MurmurHash function will be used.
 
