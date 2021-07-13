@@ -1,3 +1,6 @@
+## 3.3.2
+  - [DOC] Clarify behavior when key is set [#65](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/65). 
+
 ## 3.3.1
   - Force encoding to UTF-8 when concatenating sources to generate fingerprint [#64](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/64)
 
