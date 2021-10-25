@@ -1,3 +1,21 @@
+## 3.3.2
+  - [DOC] Clarify behavior when key is set [#65](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/65). 
+
+## 3.3.1
+  - Force encoding to UTF-8 when concatenating sources to generate fingerprint [#64](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/64)
+
+## 3.3.0
+  - Add ECS compatibility [#62](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/62)
+
+## 3.2.4
+  - Fixed the error in Murmur3 with Integer [#61](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/61)
+
+## 3.2.3
+  - [DOC] Expanded description for concatenate_sources behavior and provided examples [#60](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/60)
+
+## 3.2.2
+  - Fixed lack of consistent fingerprints on Hash/Map objects [#55](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/55)
+
 ## 3.2.1
   - Fixed concurrent SHA fingerprinting by making the instances thread local
 

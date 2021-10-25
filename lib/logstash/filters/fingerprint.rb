@@ -6,6 +6,7 @@ require "openssl"
 require "ipaddr"
 require "murmurhash3"
 require "securerandom"
+require "logstash/plugin_mixins/ecs_compatibility_support"
 
 # Create consistent hashes (fingerprints) of one or more fields and store
 # the result in a new field.
@@ -22,6 +23,8 @@ require "securerandom"
 # https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID].
 # To generate UUIDs, prefer the <<plugins-filters-uuid,uuid filter>>.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
+  include LogStash::PluginMixins::ECSCompatibilitySupport(:disabled, :v1, :v8 => :v1)
+
   config_name "fingerprint"
 
   # The name(s) of the source field(s) whose contents will be used
@@ -31,7 +34,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   # The name of the field where the generated fingerprint will be stored.
   # Any current contents of that field will be overwritten.
-  config :target, :validate => :string, :default => 'fingerprint'
+  config :target, :validate => :string
 
   # When used with the `IPV4_NETWORK` or `IPV6_NETWORK` method fill in the subnet prefix length.
   # With other methods, optionally fill in the HMAC key.
@@ -81,6 +84,11 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # without having to proide the field names in the `source` attribute
   config :concatenate_all_fields, :validate => :boolean, :default => false
 
+  def initialize(*params)
+    super
+    @target ||= ecs_select[disabled: 'fingerprint', v1: '[event][hash]']
+  end
+
   def register
     # convert to symbol for faster comparisons
     @method = @method.to_sym
@@ -124,12 +132,14 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       if @concatenate_sources || @concatenate_all_fields
         to_string = ""
         if @concatenate_all_fields
-          event.to_hash.sort.map do |k,v|
-            to_string << "|#{k}|#{v}"
+          deep_sort_hashes(event.to_hash).each do |k,v|
+            # Force encoding to UTF-8 to get around https://github.com/jruby/jruby/issues/6748
+            to_string << "|#{k}|#{v}".force_encoding("UTF-8")
           end
         else
           @source.sort.each do |k|
-            to_string << "|#{k}|#{event.get(k)}"
+            # Force encoding to UTF-8 to get around https://github.com/jruby/jruby/issues/6748
+            to_string << "|#{k}|#{deep_sort_hashes(event.get(k))}".force_encoding("UTF-8")
           end
         end
         to_string << "|"
@@ -139,9 +149,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         @source.each do |field|
           next unless event.include?(field)
           if event.get(field).is_a?(Array)
-            event.set(@target, event.get(field).collect { |v| fingerprint(v) })
+            event.set(@target, event.get(field).collect { |v| fingerprint(deep_sort_hashes(v)) })
           else
-            event.set(@target, fingerprint(event.get(field)))
+            event.set(@target, fingerprint(deep_sort_hashes(event.get(field))))
           end
         end
       end
@@ -150,6 +160,20 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   end
 
   private
+  def deep_sort_hashes(object)
+    case object
+    when Hash
+      sorted_hash = Hash.new
+      object.sort.each do |sorted_key, value|
+        sorted_hash[sorted_key] = deep_sort_hashes(value)
+      end
+      sorted_hash
+    when Array
+      object.map {|element| deep_sort_hashes(element) }
+    else
+      object
+    end
+  end
 
   def fingerprint_ipv4_network(ip_string)
     # in JRuby 1.7.11 outputs as US-ASCII
@@ -184,8 +208,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   def fingerprint_murmur3(value)
     case value
-    when Fixnum
-      MurmurHash3::V32.int_hash(value)
+    when Integer
+      MurmurHash3::V32.int64_hash(value)
     else
       MurmurHash3::V32.str_hash(value.to_s)
     end
