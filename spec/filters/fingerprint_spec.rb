@@ -32,6 +32,16 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         end
       end
 
+      describe "the IPV6_NETWORK method" do
+        let(:data) { {"clientip" => "2001:db8:85a3::8a2e:370:7334" } }
+        let(:fingerprint_method) { "IPV6_NETWORK" }
+        let(:config) { super().merge("key" => 112) }
+
+        it "fingerprints the ip as the network" do
+          expect(fingerprint).to eq("2001:db8:85a3::8a2e:370:0")
+        end
+      end
+
       describe "the MURMUR3 method" do
         let(:fingerprint_method) { "MURMUR3" }
 
