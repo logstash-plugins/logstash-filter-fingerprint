@@ -99,7 +99,7 @@ describe LogStash::Filters::Fingerprint do
     end
   end
 
-  describe "fingerprint string with SHA1 algorithm and base64url encoding" do
+  describe "fingerprint string with SHA256 algorithm and base64url encoding" do
     config <<-CONFIG
       filter {
         fingerprint {
