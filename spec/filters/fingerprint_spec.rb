@@ -297,7 +297,7 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "MURMUR3_128" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          expect(fingerprint).to eq("61df5cc024b8fa8895bed59b65e52e52")
+          expect(fingerprint).to eq("37785b62a8cae473acc315d39b66d86e")
         end
       end
     end
