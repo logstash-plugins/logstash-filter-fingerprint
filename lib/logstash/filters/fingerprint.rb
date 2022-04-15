@@ -23,6 +23,10 @@ require "logstash/plugin_mixins/ecs_compatibility_support"
 # https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID].
 # To generate UUIDs, prefer the <<plugins-filters-uuid,uuid filter>>.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
+
+  MAX_32BIT = (1 << 31) - 1
+  MIN_32BIT = -(1 << 31)
+
   include LogStash::PluginMixins::ECSCompatibilitySupport(:disabled, :v1, :v8 => :v1)
 
   config_name "fingerprint"
@@ -51,7 +55,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # the fingerprint. When a key set, the keyed-hash (HMAC) digest function will
   # be used.
   #
-  # If set to `MURMUR3` the non-cryptographic MurmurHash function will be used.
+  # If set to `MURMUR3` or `MURMUR3_128` the non-cryptographic MurmurHash
+  # function (either the 32-bit or 128-bit implementation, repsectively)
+  # will be used.
   #
   # If set to `IPV4_NETWORK` the input data needs to be a IPv4 address and
   # the hash value will be the masked-out address using the number of bits
@@ -213,13 +219,26 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   end
 
   def fingerprint_murmur3_128(value)
-    case value
-    when Fixnum
-      MurmurHash3::V128.int32_hash(value, 2)
-    when Bignum
-      MurmurHash3::V128.int64_hash(value, 2)
+    if value.is_a?(Integer)
+      if (MIN_32BIT <= value) && (value <= MAX_32BIT)
+        if @base64encode
+          [MurmurHash3::V128.int32_hash(value, 2).pack("L*")].pack("m").chomp!
+        else
+          MurmurHash3::V128.int32_hash(value, 2).pack("L*").unpack("H*")[0]
+        end
+      else
+        if @base64encode
+          [MurmurHash3::V128.int64_hash(value, 2).pack("L*")].pack("m").chomp!
+        else
+          MurmurHash3::V128.int64_hash(value, 2).pack("L*").unpack("H*")[0]
+        end
+      end
     else
-      MurmurHash3::V128.str_hash(value.to_s, 2)
+      if @base64encode
+        MurmurHash3::V128.str_base64digest(value.to_s, 2)
+      else
+        MurmurHash3::V128.str_hexdigest(value.to_s, 2)
+      end
     end
   end
 
