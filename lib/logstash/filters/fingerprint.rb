@@ -56,7 +56,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # be used.
   #
   # If set to `MURMUR3` or `MURMUR3_128` the non-cryptographic MurmurHash
-  # function (either the 32-bit or 128-bit implementation, repsectively)
+  # function (either the 32-bit or 128-bit implementation, respectively)
   # will be used.
   #
   # If set to `IPV4_NETWORK` the input data needs to be a IPv4 address and
