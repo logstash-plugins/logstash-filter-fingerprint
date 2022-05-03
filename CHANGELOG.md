@@ -1,5 +1,5 @@
 ## 3.4.0
-  - [DOC] Added support for 128bit murmur variant [#66](https://github.com/logstash-plugins/logstash-filter-fingerprint/issues/66) (resolves [#32](https://github.com/logstash-plugins/logstash-filter-fingerprint/issues/32), supercedes [#42](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/42)).
+  - Added support for 128bit murmur variant [#66](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/66).
 
 ## 3.3.2
   - [DOC] Clarify behavior when key is set [#65](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/65). 
