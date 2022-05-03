@@ -24,8 +24,8 @@ require "logstash/plugin_mixins/ecs_compatibility_support"
 # To generate UUIDs, prefer the <<plugins-filters-uuid,uuid filter>>.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
-  MAX_32BIT = (1 << 31) - 1
-  MIN_32BIT = -(1 << 31)
+  INTEGER_MAX_32BIT = (1 << 31) - 1
+  INTEGER_MIN_32BIT = -(1 << 31)
 
   include LogStash::PluginMixins::ECSCompatibilitySupport(:disabled, :v1, :v8 => :v1)
 
@@ -44,8 +44,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # With other methods, optionally fill in the HMAC key.
   config :key, :validate => :string
 
-  # When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512` and `MD5` fingerprint methods will produce
-  # base64 encoded rather than hex encoded strings.
+  # When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512`, `MD5` and `MURMUR3_128` fingerprint
+  # methods will produce base64 encoded rather than hex encoded strings.
   config :base64encode, :validate => :boolean, :default => false
 
   # The fingerprint method to use.
@@ -220,7 +220,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   def fingerprint_murmur3_128(value)
     if value.is_a?(Integer)
-      if (MIN_32BIT <= value) && (value <= MAX_32BIT)
+      if (INTEGER_MIN_32BIT <= value) && (value <= INTEGER_MAX_32BIT)
         if @base64encode
           [MurmurHash3::V128.int32_hash(value, 2).pack("L*")].pack("m").chomp!
         else

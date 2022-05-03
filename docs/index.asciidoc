@@ -76,7 +76,7 @@ filter plugins.
   * Value type is <<boolean,boolean>>
   * Default value is `false`
 
-When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512` and `MD5` fingerprint methods will produce
+When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512`, `MD5` and `MURMUR3_128` fingerprint methods will produce
 base64 encoded rather than hex encoded strings.
 
 [id="plugins-{type}s-{plugin}-concatenate_sources"]
