@@ -1,3 +1,6 @@
+## Next release
+  - Fixed unit test to support Logstash 8 timestamp [#87](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/67)
+
 ## 3.4.0
   - Added support for 128bit murmur variant [#66](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/66).
 
