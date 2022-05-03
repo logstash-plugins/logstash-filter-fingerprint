@@ -23,6 +23,10 @@ require "logstash/plugin_mixins/ecs_compatibility_support"
 # https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID].
 # To generate UUIDs, prefer the <<plugins-filters-uuid,uuid filter>>.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
+
+  INTEGER_MAX_32BIT = (1 << 31) - 1
+  INTEGER_MIN_32BIT = -(1 << 31)
+
   include LogStash::PluginMixins::ECSCompatibilitySupport(:disabled, :v1, :v8 => :v1)
 
   config_name "fingerprint"
@@ -40,8 +44,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # With other methods, optionally fill in the HMAC key.
   config :key, :validate => :string
 
-  # When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512` and `MD5` fingerprint methods will produce
-  # base64 encoded rather than hex encoded strings.
+  # When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512`, `MD5` and `MURMUR3_128` fingerprint
+  # methods will produce base64 encoded rather than hex encoded strings.
   config :base64encode, :validate => :boolean, :default => false
 
   # The fingerprint method to use.
@@ -51,7 +55,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # the fingerprint. When a key set, the keyed-hash (HMAC) digest function will
   # be used.
   #
-  # If set to `MURMUR3` the non-cryptographic MurmurHash function will be used.
+  # If set to `MURMUR3` or `MURMUR3_128` the non-cryptographic MurmurHash
+  # function (either the 32-bit or 128-bit implementation, respectively)
+  # will be used.
   #
   # If set to `IPV4_NETWORK` the input data needs to be a IPv4 address and
   # the hash value will be the masked-out address using the number of bits
@@ -64,7 +70,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
   # If set to `UUID`, a
   # https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID] will
   # be generated. The result will be random and thus not a consistent hash.
-  config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
+  config :method, :validate => ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5', "MURMUR3", "MURMUR3_128", "IPV4_NETWORK", "UUID", "PUNCTUATION"], :required => true, :default => 'SHA1'
 
   # When set to `true` and `method` isn't `UUID` or `PUNCTUATION`, the
   # plugin concatenates the names and values of all fields given in the
@@ -102,6 +108,8 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       class << self; alias_method :fingerprint, :fingerprint_ipv4_network; end
     when :MURMUR3
       class << self; alias_method :fingerprint, :fingerprint_murmur3; end
+    when :MURMUR3_128
+      class << self; alias_method :fingerprint, :fingerprint_murmur3_128; end
     when :UUID
       # nothing
     when :PUNCTUATION
@@ -207,6 +215,30 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       MurmurHash3::V32.int64_hash(value)
     else
       MurmurHash3::V32.str_hash(value.to_s)
+    end
+  end
+
+  def fingerprint_murmur3_128(value)
+    if value.is_a?(Integer)
+      if (INTEGER_MIN_32BIT <= value) && (value <= INTEGER_MAX_32BIT)
+        if @base64encode
+          [MurmurHash3::V128.int32_hash(value, 2).pack("L*")].pack("m").chomp!
+        else
+          MurmurHash3::V128.int32_hash(value, 2).pack("L*").unpack("H*")[0]
+        end
+      else
+        if @base64encode
+          [MurmurHash3::V128.int64_hash(value, 2).pack("L*")].pack("m").chomp!
+        else
+          MurmurHash3::V128.int64_hash(value, 2).pack("L*").unpack("H*")[0]
+        end
+      end
+    else
+      if @base64encode
+        MurmurHash3::V128.str_base64digest(value.to_s, 2)
+      else
+        MurmurHash3::V128.str_hexdigest(value.to_s, 2)
+      end
     end
   end
 

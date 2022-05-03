@@ -50,6 +50,59 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         end
       end
 
+      describe "the MURMUR3_128 method" do
+        let(:fingerprint_method) { "MURMUR3_128" }
+
+        context "string hex encoding" do
+          it "fingerprints the value" do
+            expect(fingerprint).to eq("41cbc4056eed401d091dfbeabf7ea9e0")
+          end
+        end
+
+        context "string base64 encoding" do
+          let(:config) { super().merge("base64encode" => true) }
+          it "fingerprints the value" do
+            expect(fingerprint).to eq("QcvEBW7tQB0JHfvqv36p4A==")
+          end
+        end
+
+        context "int32 hex encoding" do
+          let(:config) { super().merge("base64encode" => false) }
+          let(:data) { {"clientip" => 123 } }
+
+          it "fingerprints the value" do
+            expect(fingerprint).to eq("286816c693ac410ed63e1430dcd6f6fe")
+          end
+        end
+
+        context "int32 base64 encoding" do
+          let(:config) { super().merge("base64encode" => true) }
+          let(:data) { {"clientip" => 123 } }
+
+          it "fingerprints the value" do
+            expect(fingerprint).to eq("KGgWxpOsQQ7WPhQw3Nb2/g==")
+          end
+        end
+
+        context "int64 hex encoding" do
+          let(:config) { super().merge("base64encode" => false) }
+          let(:data) { {"clientip" => 2148483647 } }
+
+          it "fingerprints the value" do
+            expect(fingerprint).to eq("fdc7699a82556c8c584131f0133ee989")
+          end
+        end
+
+        context "int64 base64 encoding" do
+          let(:config) { super().merge("base64encode" => true) }
+          let(:data) { {"clientip" => 2148483647 } }
+
+          it "fingerprints the value" do
+            expect(fingerprint).to eq("/cdpmoJVbIxYQTHwEz7piQ==")
+          end
+        end
+      end
+
       describe "the SHA1 method" do
         let(:fingerprint_method) { "SHA1" }
 
@@ -237,6 +290,14 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
           expect(fingerprint).to eq(743372282)
+        end
+      end
+
+      describe 'MURMUR3_128 Fingerprinting' do
+        let(:fingerprint_method) { "MURMUR3_128" }
+        let(:data) { { "@timestamp" => epoch_time } }
+        it "fingerprints the timestamp correctly" do
+          expect(fingerprint).to eq("37785b62a8cae473acc315d39b66d86e")
         end
       end
     end
