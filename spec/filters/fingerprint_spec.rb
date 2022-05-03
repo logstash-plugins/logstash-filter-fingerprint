@@ -273,15 +273,19 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
     end
 
     context 'Timestamps' do
-      epoch_time = Time.at(0).gmtime
+      let(:epoch_time) { Time.at(0).gmtime }
+      let(:logstash_epoch_time) { LogStash::Timestamp.new(epoch_time).to_s }
       let(:config) { super().merge("source" => ['@timestamp']) }
 
       describe 'OpenSSL Fingerprinting' do
-        let(:config) { super().merge("key" => '0123') }
+        let(:key) { '0123' }
+        let(:config) { super().merge("key" => key) }
         let(:fingerprint_method) { "SHA1" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          expect(fingerprint).to eq('1d5379ec92d86a67cfc642d55aa050ca312d3b9a')
+          digest = OpenSSL::Digest::SHA1.new
+          hash = OpenSSL::HMAC.hexdigest(digest, key, logstash_epoch_time).force_encoding(Encoding::UTF_8)
+          expect(fingerprint).to eq hash
         end
       end
 
@@ -289,7 +293,7 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "MURMUR3" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          expect(fingerprint).to eq(743372282)
+          expect(fingerprint).to eq MurmurHash3::V32.str_hash(logstash_epoch_time)
         end
       end
 
@@ -297,7 +301,7 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "MURMUR3_128" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          expect(fingerprint).to eq("37785b62a8cae473acc315d39b66d86e")
+          expect(fingerprint).to eq MurmurHash3::V128.str_hexdigest(logstash_epoch_time, 2)
         end
       end
     end
