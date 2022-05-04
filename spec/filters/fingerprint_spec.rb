@@ -273,7 +273,7 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
     end
 
     context 'Timestamps' do
-      epoch_time = Time.at(0).gmtime
+      let(:epoch_time) { Time.at(0).gmtime }
       let(:config) { super().merge("source" => ['@timestamp']) }
 
       describe 'OpenSSL Fingerprinting' do
@@ -281,7 +281,9 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "SHA1" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          expect(fingerprint).to eq('1d5379ec92d86a67cfc642d55aa050ca312d3b9a')
+          # the string format of LogStash::Timestamp has breaking change in Logstash 8
+          hash = lt_version_8? ? '1d5379ec92d86a67cfc642d55aa050ca312d3b9a' : '437291481f9b52199fcc6e3c6ea31ef4ad1c8fe5'
+          expect(fingerprint).to eq(hash)
         end
       end
 
@@ -289,7 +291,8 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "MURMUR3" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          expect(fingerprint).to eq(743372282)
+          hash = lt_version_8? ? 743372282 : 1154765817
+          expect(fingerprint).to eq(hash)
         end
       end
 
@@ -297,8 +300,13 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "MURMUR3_128" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          expect(fingerprint).to eq("37785b62a8cae473acc315d39b66d86e")
+          hash = lt_version_8? ? '37785b62a8cae473acc315d39b66d86e' : 'a0287bec80fce9eb6a1457efae3a7aeb'
+          expect(fingerprint).to eq(hash)
         end
+      end
+
+      def lt_version_8?
+        Gem::Version.new(LOGSTASH_VERSION) < Gem::Version.new('8.0.0')
       end
     end
 
