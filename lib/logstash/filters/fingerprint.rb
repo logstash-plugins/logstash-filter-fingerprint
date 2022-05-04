@@ -24,6 +24,25 @@ require "logstash/plugin_mixins/ecs_compatibility_support"
 # To generate UUIDs, prefer the <<plugins-filters-uuid,uuid filter>>.
 class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
+  ##
+  # Logstash 8+ has variable-length serialization of timestamps
+  # that do not include subsecond info for whole-second timestamps.
+  # For backward-compatibility we refine the implementation to use
+  # our own three-decimal-place formatter for whole-second
+  # timestamps.
+  if LOGSTASH_VERSION.split('.').first.to_i >= 8
+    module MinimumSerializationLengthTimestamp
+      THREE_DECIMAL_INSTANT_FORMATTER = java.time.format.DateTimeFormatterBuilder.new.appendInstant(3).toFormatter
+      refine LogStash::Timestamp do
+        def to_s
+          return super unless nsec == 0
+          THREE_DECIMAL_INSTANT_FORMATTER.format(to_java.toInstant)
+        end
+      end
+    end
+    using MinimumSerializationLengthTimestamp
+  end
+
   INTEGER_MAX_32BIT = (1 << 31) - 1
   INTEGER_MIN_32BIT = -(1 << 31)
 

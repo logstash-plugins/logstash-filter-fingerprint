@@ -19,6 +19,10 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
       plugin.filter(event)
     end
 
+    def ge_version_8
+      LOGSTASH_VERSION.split('.').first.to_i >= 8
+    end
+
     context "with a string field" do
       let(:data) { {"clientip" => "123.123.123.123" } }
       let(:config) { super().merge("source" => ["clientip" ]) }
@@ -281,9 +285,7 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "SHA1" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          # the string format of LogStash::Timestamp has breaking change in Logstash 8
-          hash = lt_version_8? ? '1d5379ec92d86a67cfc642d55aa050ca312d3b9a' : '437291481f9b52199fcc6e3c6ea31ef4ad1c8fe5'
-          expect(fingerprint).to eq(hash)
+          expect(fingerprint).to eq('1d5379ec92d86a67cfc642d55aa050ca312d3b9a')
         end
       end
 
@@ -291,8 +293,7 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "MURMUR3" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          hash = lt_version_8? ? 743372282 : 1154765817
-          expect(fingerprint).to eq(hash)
+          expect(fingerprint).to eq(743372282)
         end
       end
 
@@ -300,13 +301,34 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "MURMUR3_128" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          hash = lt_version_8? ? '37785b62a8cae473acc315d39b66d86e' : 'a0287bec80fce9eb6a1457efae3a7aeb'
-          expect(fingerprint).to eq(hash)
+          expect(fingerprint).to eq('37785b62a8cae473acc315d39b66d86e')
         end
       end
 
-      def lt_version_8?
-        Gem::Version.new(LOGSTASH_VERSION) < Gem::Version.new('8.0.0')
+      describe "fractional seconds" do
+        let(:fingerprint_method) { "MURMUR3" }
+        let(:data) { { "@timestamp" => epoch_time } }
+
+        describe "millisecond" do
+          let(:epoch_time) { LogStash::Timestamp.new('2000-01-01T05:00:00.12Z') }
+          it "fingerprints the timestamp correctly" do
+            expect(fingerprint).to eq(4263087275)
+          end
+        end
+
+        describe "microsecond" do
+          let(:epoch_time) { LogStash::Timestamp.new('2000-01-01T05:00:00.123456Z') }
+          it "fingerprints the timestamp correctly" do
+            expect(fingerprint).to eq(4188855160)
+          end
+        end if ge_version_8
+
+        describe "nanosecond" do
+          let(:epoch_time) { LogStash::Timestamp.new('2000-01-01T05:00:00.123456789Z') }
+          it "fingerprints the timestamp correctly" do
+            expect(fingerprint).to eq(3520111535)
+          end
+        end if ge_version_8
       end
     end
 
