@@ -19,6 +19,10 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
       plugin.filter(event)
     end
 
+    def ge_version_8
+      LOGSTASH_VERSION.split('.').first.to_i >= 8
+    end
+
     context "with a string field" do
       let(:data) { {"clientip" => "123.123.123.123" } }
       let(:config) { super().merge("source" => ["clientip" ]) }
@@ -273,7 +277,7 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
     end
 
     context 'Timestamps' do
-      epoch_time = Time.at(0).gmtime
+      let(:epoch_time) { Time.at(0).gmtime }
       let(:config) { super().merge("source" => ['@timestamp']) }
 
       describe 'OpenSSL Fingerprinting' do
@@ -297,8 +301,34 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:fingerprint_method) { "MURMUR3_128" }
         let(:data) { { "@timestamp" => epoch_time } }
         it "fingerprints the timestamp correctly" do
-          expect(fingerprint).to eq("37785b62a8cae473acc315d39b66d86e")
+          expect(fingerprint).to eq('37785b62a8cae473acc315d39b66d86e')
         end
+      end
+
+      describe "fractional seconds" do
+        let(:fingerprint_method) { "MURMUR3" }
+        let(:data) { { "@timestamp" => epoch_time } }
+
+        describe "millisecond" do
+          let(:epoch_time) { LogStash::Timestamp.new('2000-01-01T05:00:00.12Z') }
+          it "fingerprints the timestamp correctly" do
+            expect(fingerprint).to eq(4263087275)
+          end
+        end
+
+        describe "microsecond" do
+          let(:epoch_time) { LogStash::Timestamp.new('2000-01-01T05:00:00.123456Z') }
+          it "fingerprints the timestamp correctly" do
+            expect(fingerprint).to eq(4188855160)
+          end
+        end if ge_version_8
+
+        describe "nanosecond" do
+          let(:epoch_time) { LogStash::Timestamp.new('2000-01-01T05:00:00.123456789Z') }
+          it "fingerprints the timestamp correctly" do
+            expect(fingerprint).to eq(3520111535)
+          end
+        end if ge_version_8
       end
     end
 
