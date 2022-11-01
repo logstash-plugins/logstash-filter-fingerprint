@@ -150,10 +150,16 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
             it "fingerprints the value" do
               expect(fingerprint).to eq("NFvsPv8kLVO1aJFsJhCz45PYhda5bWQ/OElP10v0qco=")
             end
+            context "and base64url encoding" do
+              let(:config) { super().merge("base64url" => true) }
+              it "fingerprints the value" do
+                expect(fingerprint).to eq("MzQ1YmVjM2VmZjI0MmQ1M2I1Njg5MTZjMjYxMGIzZTM5M2Q4ODVkNmI5NmQ2NDNmMzg0OTRmZDc0YmY0YTljYQ==")
+              end
+            end
           end
         end
-      end
-
+      end    
+      
       context "the SHA384 algorithm" do
         let(:fingerprint_method) { "SHA384" }
         it "fingerprints the value" do
