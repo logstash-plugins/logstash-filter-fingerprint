@@ -59,7 +59,7 @@ This plugin supports the following configuration options plus the <<plugins-{typ
 | <<plugins-{type}s-{plugin}-concatenate_sources>> |<<boolean,boolean>>|No
 | <<plugins-{type}s-{plugin}-concatenate_all_fields>> |<<boolean,boolean>>|No
 | <<plugins-{type}s-{plugin}-ecs_compatibility>> | <<string,string>>|No
-| <<plugins-{type}s-{plugin}-key>> |<<string,string>>|No
+| <<plugins-{type}s-{plugin}-key>> |<<password,password>>|No
 | <<plugins-{type}s-{plugin}-method>> |<<string,string>>, one of `["SHA1", "SHA256", "SHA384", "SHA512", "MD5", "MURMUR3", "MURMUR3_128", IPV4_NETWORK", "UUID", "PUNCTUATION"]`|Yes
 | <<plugins-{type}s-{plugin}-source>> |<<array,array>>|No
 | <<plugins-{type}s-{plugin}-target>> |<<string,string>>|No
@@ -164,7 +164,7 @@ See <<plugins-{type}s-{plugin}-ecs_metadata>> for detailed information.
 [id="plugins-{type}s-{plugin}-key"]
 ===== `key` 
 
-  * Value type is <<string,string>>
+  * Value type is <<password,password>>
   * There is no default value for this setting.
 
 When used with the `IPV4_NETWORK` method fill in the subnet prefix length.

@@ -1,3 +1,6 @@
+## 3.4.2
+  - Key config type changed to `Password` type for better protection from leaks. [#70](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/70)
+
 ## 3.4.1
   - Added backward compatibility of timestamp format to provide consistent fingerprint [#67](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/67)
 
