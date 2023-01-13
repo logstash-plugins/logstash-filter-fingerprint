@@ -61,7 +61,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   # When used with the `IPV4_NETWORK` method fill in the subnet prefix length.
   # With other methods, optionally fill in the HMAC key.
-  config :key, :validate => :string
+  config :key, :validate => :password
 
   # When set to `true`, the `SHA1`, `SHA256`, `SHA384`, `SHA512`, `MD5` and `MURMUR3_128` fingerprint
   # methods will produce base64 encoded rather than hex encoded strings.
@@ -199,7 +199,7 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
 
   def fingerprint_ipv4_network(ip_string)
     # in JRuby 1.7.11 outputs as US-ASCII
-    IPAddr.new(ip_string).mask(@key.to_i).to_s.force_encoding(Encoding::UTF_8)
+    IPAddr.new(ip_string).mask(@key.value.to_i).to_s.force_encoding(Encoding::UTF_8)
   end
 
   def fingerprint_openssl(data)
@@ -220,10 +220,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
       end
     else
       if @base64encode
-        hash = OpenSSL::HMAC.digest(digest, @key, data.to_s)
+        hash = OpenSSL::HMAC.digest(digest, @key.value, data.to_s)
         Base64.strict_encode64(hash).force_encoding(Encoding::UTF_8)
       else
-        OpenSSL::HMAC.hexdigest(digest, @key, data.to_s).force_encoding(Encoding::UTF_8)
+        OpenSSL::HMAC.hexdigest(digest, @key.value, data.to_s).force_encoding(Encoding::UTF_8)
       end
     end
   end
