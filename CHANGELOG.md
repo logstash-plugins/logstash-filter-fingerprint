@@ -1,3 +1,6 @@
+## 3.4.3
+  - pin murmurhash3 to 0.1.6 [#74](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/74)
+
 ## 3.4.2
   - Key config type changed to `Password` type for better protection from leaks. [#71](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/71)
 
