@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
 
   s.name            = 'logstash-filter-fingerprint'
-  s.version         = '3.4.2'
+  s.version         = '3.4.3'
   s.licenses        = ['Apache-2.0']
   s.summary         = "Fingerprints fields by replacing values with a consistent hash"
   s.description     = "This gem is a Logstash plugin required to be installed on top of the Logstash core pipeline using $LS_HOME/bin/logstash-plugin install gemname. This gem is not a stand-alone program"
@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
 
   # Gem dependencies
   s.add_runtime_dependency "logstash-core-plugin-api", ">= 1.60", "<= 2.99"
-  s.add_runtime_dependency "murmurhash3"                    #(MIT license)
+  s.add_runtime_dependency "murmurhash3", "= 0.1.6" #(MIT license)
   s.add_development_dependency 'logstash-devutils'
   s.add_runtime_dependency 'logstash-mixin-ecs_compatibility_support', '~>1.2'
 end
