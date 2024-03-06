@@ -134,6 +134,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     when :PUNCTUATION
       # nothing
     else
+      # force the resolution of OpenSSL class to avoid errors when loaded in multithreaded
+      # #select_digest method. https://github.com/logstash-plugins/logstash-filter-fingerprint/issues/75
+      OpenSSL::Digest::MD5
       class << self; alias_method :fingerprint, :fingerprint_openssl; end
     end
   end
