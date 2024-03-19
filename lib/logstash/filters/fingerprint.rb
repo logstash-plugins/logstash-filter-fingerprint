@@ -134,6 +134,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     when :PUNCTUATION
       # nothing
     else
+      # force the resolution of OpenSSL class to avoid errors when loaded in multi-threaded
+      # #fingerprint_openssl method to instantiate the appropriate digest class.
+      # https://github.com/logstash-plugins/logstash-filter-fingerprint/issues/75
+      select_digest(@method)
       class << self; alias_method :fingerprint, :fingerprint_openssl; end
     end
   end
@@ -209,7 +213,10 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     # we must include the id in the thread local variable name, so that we can
     # store multiple digest instances
     digest_string = "digest-#{id}"
-    Thread.current[digest_string] ||= select_digest(@method)
+    unless Thread.current[digest_string]
+      digest_class = select_digest(@method)
+      Thread.current[digest_string] = digest_class.new
+    end
     digest = Thread.current[digest_string]
     # in JRuby 1.7.11 outputs as ASCII-8BIT
     if @key.nil?
@@ -261,18 +268,19 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     end
   end
 
+  # Return Class reference more appropriate for the method.
   def select_digest(method)
     case method
     when :SHA1
-      OpenSSL::Digest::SHA1.new
+      OpenSSL::Digest::SHA1
     when :SHA256
-      OpenSSL::Digest::SHA256.new
+      OpenSSL::Digest::SHA256
     when :SHA384
-      OpenSSL::Digest::SHA384.new
+      OpenSSL::Digest::SHA384
     when :SHA512
-      OpenSSL::Digest::SHA512.new
+      OpenSSL::Digest::SHA512
     when :MD5
-      OpenSSL::Digest::MD5.new
+      OpenSSL::Digest::MD5
     else
       # we really should never get here
       raise(LogStash::ConfigurationError, "Unknown digest for method=#{method.to_s}")

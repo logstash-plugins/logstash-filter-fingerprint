@@ -1,3 +1,6 @@
+## 3.4.4
+  - Fix, eagerly load OpenSSL classes ot avoid uninitialized constant error [#76](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/76)
+
 ## 3.4.3
   - pin murmurhash3 to 0.1.6 [#74](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/74)
 
